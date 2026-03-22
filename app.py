@@ -488,14 +488,15 @@ def lich_su_bao_hong():
     try:
         con_tro = conn.cursor(dictionary=True)
         con_tro.execute("""
-            SELECT pb.*, p.ten_phong, t.ten_toanha,
+            SELECT pb.*, p.ten_phong, t.ten_toanha, n_tao.ho_ten AS nguoi_bao_cao, n_tao.tai_khoan AS mssv_nguoi_bao,
                    pc.anh_hoan_thanh, pc.ghi_chu, pc.ngay_cap_nhat AS thoi_gian_sua_xong, kt.ho_ten AS ten_ky_thuat, kt.so_dien_thoai AS sdt_ky_thuat
             FROM phieubaohong pb
             JOIN phong p ON pb.ma_phong = p.ma_phong
             JOIN toanha t ON pb.ma_toanha = t.ma_toanha
+            LEFT JOIN nguoidung n_tao ON pb.ma_nguoidung = n_tao.ma_nguoidung
             LEFT JOIN phancong pc ON pc.ma_phieu = pb.ma_phieu AND pc.trang_thai IN ('da_tiep_nhan', 'hoan_thanh')
             LEFT JOIN nguoidung kt ON pc.ma_kythuat = kt.ma_nguoidung
-            WHERE pb.ma_nguoidung = %s
+            WHERE pb.ma_phong = (SELECT ma_phong FROM nguoidung WHERE ma_nguoidung = %s)
             ORDER BY pb.ngay_tao DESC
         """, (session['ma_nguoidung'],))
         ds_phieu = con_tro.fetchall()
@@ -1433,7 +1434,7 @@ def dem_so_luong_thong_bao():
             ket_qua['phieu_can_xu_ly'] = con_tro.fetchone()['cnt']
             
         elif vai_tro == 'sinhvien':
-            con_tro.execute("SELECT COUNT(*) as cnt FROM phieubaohong WHERE ma_nguoidung = %s AND trang_thai IN ('da_phan_cong', 'dang_xu_ly', 'da_hoan_thanh')", (ma_nguoidung,))
+            con_tro.execute("SELECT COUNT(*) as cnt FROM phieubaohong WHERE ma_phong = (SELECT ma_phong FROM nguoidung WHERE ma_nguoidung = %s) AND trang_thai IN ('da_phan_cong', 'dang_xu_ly', 'da_hoan_thanh')", (ma_nguoidung,))
             ket_qua['phieu_dang_xu_ly'] = con_tro.fetchone()['cnt']
             
         elif vai_tro == 'kythuat':
@@ -1450,8 +1451,8 @@ def dem_so_luong_thong_bao():
 def gui_email_thong_bao(email_nhan, tieu_de, noi_dung):
     import time
     import os
-    email_gui = os.environ.get('MAIL_USERNAME', '')
-    mat_khau = os.environ.get('MAIL_PASSWORD', '')
+    email_gui = os.environ.get('MAIL_USERNAME', '').strip()
+    mat_khau = os.environ.get('MAIL_PASSWORD', '').strip()
     
     log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'email_log.txt')
     with open(log_path, 'a', encoding='utf-8') as f:
@@ -1481,6 +1482,16 @@ def gui_email_thong_bao(email_nhan, tieu_de, noi_dung):
         except Exception as e:
             ghilog(f"LOI GUI EMAIL tới {email_nhan}: {str(e)}")
             return False
+
+@app.route('/debug/logs')
+def xem_log():
+    try:
+        import os
+        log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'email_log.txt')
+        with open(log_path, 'r', encoding='utf-8') as f:
+            return f.read(), 200, {'Content-Type': 'text/plain; charset=utf-8'}
+    except Exception as e:
+        return f"Không thể đọc file: {str(e)}", 500
 
 @app.route('/api/quen-mat-khau', methods=['POST'])
 def quen_mat_khau():

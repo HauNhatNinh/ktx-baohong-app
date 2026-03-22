@@ -428,7 +428,8 @@
                                 '</div>' +
                                 '<div class="noi-dung-phieu">' +
                                 'Phòng: ' + p.ten_phong + ' - ' + p.ten_toanha + '<br>' +
-                                'Người báo: Bạn' + p.sdt_nguoi_bao_format + p.moTaText + '<br>' +
+                                'Người báo: <b>' + (phieu.nguoi_bao_cao ? phieu.nguoi_bao_cao + ' (' + phieu.mssv_nguoi_bao + ')' : 'Đã ẩn') + '</b><br>' +
+                                'Chi tiết lỗi: ' + (phieu.mo_ta || 'Không có mô tả') + '<br>' +
                                 'Mức độ: ' + (p.muc_do === 'khancap' ? '🔴 Khẩn cấp' : '🟡 Thường') + p.thongTinKTV + p.ghiChu + p.ly_do_html +
                                 '</div>' +
                                 (p.anh_minh_chung ? '<div style="margin-top:8px"><strong>Ảnh báo hỏng:</strong><br><img src="' + (p.anh_minh_chung.startsWith('http') ? '' : '/uploads/') + p.anh_minh_chung + '" class="anh-minh-chung" style="max-height:150px; margin-top:4px;" onerror="this.outerHTML=\'<div style=\\\'margin-top:4px;color:#9ca3af;font-size:12px;font-style:italic;\\\'>[Ảnh báo hỏng không tồn tại trên Server này]</div>\'"></div>' : '') +
