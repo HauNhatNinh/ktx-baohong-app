@@ -1264,24 +1264,72 @@ body {
     color: var(--mau-chu-phu);
 }
 
-/* Responsive */
+/* Responsive cho Giao Dien Ngang */
 @media (max-width: 768px) {
     .thanh-ben {
-        width: 65px;
-        padding: 16px 0;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--mau-nen-3);
     }
     
+    .thanh-ben .thuong-hieu {
+        padding-right: 8px;
+        border-right: none;
+    }
+
     .thanh-ben .thuong-hieu .ten,
     .thanh-ben .thuong-hieu .mo-ta,
-    .thanh-ben .thong-tin-nguoidung .ten-nguoidung,
-    .thanh-ben .thong-tin-nguoidung .vai-tro-nguoidung,
-    .menu-ben .muc-menu span:not(.bieu-tuong-menu) {
-        display: none;
+    .thanh-ben .thong-tin-nguoidung,
+    .menu-ben .muc-menu span:not(.bieu-tuong-menu):not(.badge-thong-bao) {
+        display: none; /* An tat ca text, chi hien Icon cho dien thoai */
+    }
+    
+    .menu-ben {
+        padding: 0;
+    }
+    
+    .menu-ben .muc-menu {
+        padding: 8px 12px;
+        margin-right: 4px;
+        gap: 0;
     }
     
     .noi-dung-chinh {
-        margin-left: 65px;
-        padding: 20px;
+        margin-left: 0;
+        padding: 16px 12px;
+    }
+
+    /* Fix Bang du lieu tran vien dien thoai */
+    .khung-bang {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .bang-du-lieu {
+        min-width: 700px; /* Bat buoc ban phai the vuot 1 ngón tay */
+    }
+
+    /* Thu Nho Form va Grid */
+    .luoi-thong-ke,
+    .ds-thanh-vien {
+        grid-template-columns: 1fr;
+    }
+    
+    .dong-form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* Thu nhao Hop Box */
+    .noi-dung-modal {
+        width: 95%;
+        margin: 10px auto;
+        padding: 24px 16px;
+    }
+    
+    .hop-dang-nhap {
+        width: 100%;
+        margin: 16px;
+        padding: 32px 20px;
     }
 }
 
