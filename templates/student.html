@@ -190,6 +190,25 @@
         </main>
     </div>
 
+    <!-- Modal Canh Bao Trung Lap -->
+    <div id="modal-trung-lap" class="modal-overlay" onclick="if(event.target===this)this.classList.remove('hien-thi')">
+        <div class="modal-noi-dung" style="max-width:500px;">
+            <div class="modal-tieu-de">
+                <h3>⚠️ Phát hiện Phiếu Tương Tự!</h3>
+                <button class="nut-dong" onclick="document.getElementById('modal-trung-lap').classList.remove('hien-thi')">✕</button>
+            </div>
+            <div id="modal-trung-lap-noi-dung" style="padding: 16px 0;"></div>
+            <div style="display:flex; gap:12px; margin-top:16px; justify-content:flex-end;">
+                <button class="nut-thu-cap" onclick="document.getElementById('modal-trung-lap').classList.remove('hien-thi')" style="background:#f3f4f6; color:#374151;">
+                    Hủy - Không gửi nữa
+                </button>
+                <button class="nut-chinh" onclick="_guiPhieuThucSu()" style="background: var(--mau-vang); color:#000;">
+                    Vẫn gửi phiếu mới
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal chi tiet thanh vien -->
     <div id="modal-thanh-vien" class="modal-overlay" onclick="if(event.target===this)dongModal('modal-thanh-vien')">
         <div class="modal-noi-dung">
@@ -379,25 +398,59 @@
         }
 
         // Tao phieu bao hong
+        var _dangGuiPhieu = false;
         function taoPhieuBaoHong(suKien) {
             suKien.preventDefault();
+            if (_dangGuiPhieu) return;
+            var tenLoi = document.getElementById('bh-tenloi').value.trim();
+            if (!tenLoi) {
+                hienThongBao('thongbao-baohong', 'Vui lòng nhập tên lỗi hỏng!', false);
+                return;
+            }
+            // Kiem tra trung lap truoc
+            fetch('/api/sinhvien/kiem-tra-trung-lap', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ten_loi: tenLoi})
+            })
+            .then(r => r.json())
+            .then(kq => {
+                if (kq.trung_lap && kq.phieu && kq.phieu.length > 0) {
+                    // Hien modal canh bao
+                    var danhSach = kq.phieu.map(function(p) {
+                        var trangThaiText = {
+                            'cho_xu_ly': '⏳ Chờ xử lý', 'da_phan_cong': '📋 Đã phân công',
+                            'dang_xu_ly': '🔧 Đang sửa', 'da_hoan_thanh': '✅ Đã hoàn thành'
+                        };
+                        return '<li style="margin:6px 0;"><b>' + p.ten_loi + '</b> &mdash; '
+                            + (trangThaiText[p.trang_thai] || p.trang_thai)
+                            + ' &mdash; Do: ' + p.nguoi_bao + ' (' + p.ngay_tao + ')</li>';
+                    }).join('');
+                    document.getElementById('modal-trung-lap-noi-dung').innerHTML =
+                        '<p>Phòng bạn đã có phiếu báo hỏng tương tự đang được xử lý:</p>' +
+                        '<ul style="background:#f8f8f8;border-radius:8px;padding:10px 20px;font-size:13px;">' + danhSach + '</ul>' +
+                        '<p style="margin-top:8px;color:#6b7280;font-size:13px;">Bạn có chắc chắn muốn tạo thêm phiếu mới không?</p>';
+                    document.getElementById('modal-trung-lap').classList.add('hien-thi');
+                } else {
+                    _guiPhieuThucSu();
+                }
+            });
+        }
+
+        function _guiPhieuThucSu() {
+            _dangGuiPhieu = true;
+            document.getElementById('modal-trung-lap').classList.remove('hien-thi');
             var formData = new FormData();
             formData.append('ten_loi', document.getElementById('bh-tenloi').value);
             formData.append('mo_ta', document.getElementById('bh-mota').value);
             formData.append('muc_do', document.getElementById('bh-mucdo').value);
             formData.append('sdt_lien_he', document.getElementById('bh-sdt').value);
-
             var fileAnh = document.getElementById('bh-anh').files[0];
-            if (fileAnh) {
-                formData.append('anh_minh_chung', fileAnh);
-            }
-
-            fetch('/api/sinhvien/tao-phieu', {
-                method: 'POST',
-                body: formData
-            })
+            if (fileAnh) { formData.append('anh_minh_chung', fileAnh); }
+            fetch('/api/sinhvien/tao-phieu', { method: 'POST', body: formData })
                 .then(function (r) { return r.json(); })
                 .then(function (kq) {
+                    _dangGuiPhieu = false;
                     hienThongBao('thongbao-baohong', kq.thong_bao, kq.thanh_cong);
                     if (kq.thanh_cong) {
                         document.getElementById('form-bao-hong').reset();

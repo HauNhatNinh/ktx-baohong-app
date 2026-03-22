@@ -376,7 +376,6 @@ def thanh_vien_phong():
         sv = con_tro.fetchone()
         if not sv or not sv['ma_phong']:
             return jsonify({'thanh_cong': True, 'du_lieu': []})
-        
         con_tro.execute("""
             SELECT ma_nguoidung, tai_khoan, ho_ten, lop, khoa, anh_dai_dien, so_dien_thoai
             FROM nguoidung 
@@ -385,6 +384,57 @@ def thanh_vien_phong():
         """, (sv['ma_phong'], session['ma_nguoidung']))
         ds_thanh_vien = con_tro.fetchall()
         return jsonify({'thanh_cong': True, 'du_lieu': ds_thanh_vien})
+    finally:
+        conn.close()
+
+@app.route('/api/sinhvien/kiem-tra-trung-lap', methods=['POST'])
+def kiem_tra_trung_lap():
+    if 'ma_nguoidung' not in session:
+        return jsonify({'thanh_cong': False}), 401
+    du_lieu = request.get_json()
+    ten_loi = (du_lieu.get('ten_loi', '') or '').strip().lower()
+    if not ten_loi:
+        return jsonify({'trung_lap': False})
+    conn = ket_noi_db()
+    if not conn:
+        return jsonify({'trung_lap': False})
+    try:
+        con_tro = conn.cursor(dictionary=True)
+        
+        # Stop-words tieng Viet khong co nghia de loc ra
+        stop_words = {'bi', 'va', 'cai', 'cua', 'cho', 'trong', 'la', 'da', 'dang',
+                      'co', 'khong', 'thi', 'de', 'len', 'di', 'ra', 'vao', 'the', 'mot'}
+        
+        # Tach tung tu, giu lai tu co nghia (>= 3 ky tu, khong phai stop-word)
+        tu_khoa = [
+            tu for tu in ten_loi.split()
+            if len(tu) >= 3 and tu not in stop_words
+        ]
+        
+        if not tu_khoa:
+            # Neu khong co tu co nghia nao, dung fallback LIKE toan bo
+            tu_khoa = [ten_loi]
+        
+        # Build query dong: kiem tra phieu cu co chua BAT KY tu khoa nao khong
+        # vd: ten_loi="bong den hong" -> LIKE %bong% OR LIKE %den% OR LIKE %hong%
+        dieu_kien_like = ' OR '.join(['LOWER(pb.ten_loi) LIKE %s'] * len(tu_khoa))
+        tham_so = [session['ma_nguoidung']] + [f'%{tu}%' for tu in tu_khoa]
+        
+        query = f"""
+            SELECT pb.ma_phieu, pb.ten_loi, pb.trang_thai, pb.ngay_tao,
+                   nd.ho_ten AS nguoi_bao
+            FROM phieubaohong pb
+            JOIN nguoidung nd ON pb.ma_nguoidung = nd.ma_nguoidung
+            WHERE pb.ma_phong = (SELECT ma_phong FROM nguoidung WHERE ma_nguoidung = %s)
+            AND pb.trang_thai NOT IN ('da_xac_nhan', 'khong_duyet', 'tu_choi_sua')
+            AND ({dieu_kien_like})
+            LIMIT 4
+        """
+        con_tro.execute(query, tham_so)
+        phieu_trung = con_tro.fetchall()
+        for p in phieu_trung:
+            p['ngay_tao'] = p['ngay_tao'].strftime('%d/%m/%Y %H:%M') if p.get('ngay_tao') else ''
+        return jsonify({'trung_lap': len(phieu_trung) > 0, 'phieu': phieu_trung})
     finally:
         conn.close()
 
