@@ -27,9 +27,6 @@
                 <div class="vai-tro-nguoidung">Sinh viên</div>
             </div>
             <nav class="menu-ben">
-                <button class="muc-menu dang-chon" onclick="chuyenMuc('thong-tin')">
-                    <span class="bieu-tuong-menu">👤</span> <span>Thông tin cá nhân</span>
-                </button>
                 <button class="muc-menu" onclick="chuyenMuc('thanh-vien')">
                     <span class="bieu-tuong-menu">👥</span> <span>Thành viên phòng</span>
                 </button>
@@ -40,11 +37,23 @@
                     <span class="bieu-tuong-menu">📋</span> <span>Lịch sử báo hỏng</span>
                     <span id="badge-sua-chua" class="badge-thong-bao"></span>
                 </button>
-                <button class="muc-menu" onclick="hienModalDoiMK()">
-                    <span class="bieu-tuong-menu">🔑</span> <span>Đổi mật khẩu</span>
-                </button>
             </nav>
-            <button class="nut-dang-xuat" onclick="dangXuat()">🚪 Đăng xuất</button>
+            <div class="vien-dropdown">
+                <button class="nut-dropdown" onclick="document.getElementById('dd-menu').classList.toggle('hien-thi')">
+                    ☰
+                </button>
+                <div id="dd-menu" class="noi-dung-dropdown">
+                    <button class="muc-dropdown" onclick="chuyenMuc('thong-tin'); document.getElementById('dd-menu').classList.remove('hien-thi');">
+                        <span class="bieu-tuong-menu">👤</span> Thông tin cá nhân
+                    </button>
+                    <button class="muc-dropdown" onclick="hienModalDoiMK(); document.getElementById('dd-menu').classList.remove('hien-thi');">
+                        <span class="bieu-tuong-menu">🔑</span> Đổi mật khẩu
+                    </button>
+                    <button class="muc-dropdown dang-xuat-dd" onclick="dangXuat()">
+                        <span class="bieu-tuong-menu">🚪</span> Đăng xuất
+                    </button>
+                </div>
+            </div>
         </aside>
 
         <!-- Noi dung chinh -->
@@ -558,6 +567,15 @@
         function dangXuat() {
             fetch('/api/dang-xuat', { method: 'POST' })
                 .then(function () { window.location.href = '/'; });
+        }
+        
+        window.onclick = function(event) {
+            if (!event.target.closest('.vien-dropdown')) {
+                var dd = document.getElementById('dd-menu');
+                if (dd && dd.classList.contains('hien-thi')) {
+                    dd.classList.remove('hien-thi');
+                }
+            }
         }
     </script>
     

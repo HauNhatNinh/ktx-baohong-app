@@ -341,26 +341,28 @@ body {
    ============================ */
 .bo-cuc {
     display: flex;
+    flex-direction: column;
     min-height: 100vh;
 }
 
 /* Thanh ben */
 .thanh-ben {
-    width: 270px;
+    width: 100%;
     background: #ffffff;
-    border-right: 1px solid var(--mau-nen-3);
-    padding: 24px 0;
+    border-bottom: 1px solid var(--mau-nen-3);
+    padding: 0 24px;
     display: flex;
-    flex-direction: column;
-    position: fixed;
-    height: 100vh;
-    z-index: 100;
-    box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+    flex-direction: row;
+    position: sticky;
+    top: 0;
+    height: 70px;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
 .thanh-ben .thuong-hieu {
-    padding: 0 24px 24px;
-    border-bottom: 1px solid var(--mau-nen-3);
+    padding: 0 24px 0 0;
+    border-right: 1px solid var(--mau-nen-3);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -390,9 +392,12 @@ body {
 }
 
 .thanh-ben .thong-tin-nguoidung {
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--mau-nen-3);
-    background: var(--mau-chinh-nen);
+    padding: 0 24px;
+    border-right: 1px solid var(--mau-nen-3);
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .thanh-ben .thong-tin-nguoidung .ten-nguoidung {
@@ -412,25 +417,37 @@ body {
 /* Menu */
 .menu-ben {
     flex: 1;
-    padding: 16px 12px;
-    overflow-y: auto;
+    padding: 0 16px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.menu-ben::-webkit-scrollbar {
+    height: 4px;
+}
+.menu-ben::-webkit-scrollbar-thumb {
+    background: var(--mau-chinh-nhat);
+    border-radius: 4px;
 }
 
 .menu-ben .muc-menu {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
+    gap: 8px;
+    padding: 8px 16px;
     border-radius: var(--bo-tron);
     color: var(--mau-chu-phu);
     cursor: pointer;
     transition: var(--chuyen-dong);
-    margin-bottom: 4px;
+    margin-right: 8px;
     font-size: 14px;
     font-weight: 500;
     border: none;
     background: none;
-    width: 100%;
+    width: auto;
+    white-space: nowrap;
     text-align: left;
     font-family: inherit;
 }
@@ -444,7 +461,8 @@ body {
     background: var(--mau-chinh-nen);
     color: var(--mau-chinh);
     font-weight: 600;
-    border-left: 3px solid var(--mau-chinh);
+    border-bottom: 3px solid var(--mau-chinh);
+    border-radius: var(--bo-tron) var(--bo-tron) 0 0;
 }
 
 .menu-ben .muc-menu .bieu-tuong-menu {
@@ -461,7 +479,7 @@ body {
     font-weight: 700;
     padding: 2px 7px;
     border-radius: 12px;
-    margin-left: auto; /* day no ra sat map phai */
+    margin-left: 4px; /* thay vi auto de om sat chu */
     display: none;
     box-shadow: 0 2px 4px rgba(220, 38, 38, 0.4);
     animation: bounceIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -477,8 +495,9 @@ body {
 }
 
 .nut-dang-xuat {
-    margin: 16px 12px;
-    padding: 12px;
+    margin: 0;
+    padding: 8px 16px;
+    align-self: center;
     background: var(--mau-do-nen);
     border: 1px solid var(--mau-do-vien);
     border-radius: var(--bo-tron);
@@ -496,10 +515,82 @@ body {
     color: white;
 }
 
+/* Dropdown Menu */
+.vien-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.nut-dropdown {
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--mau-chu);
+    padding: 8px 12px;
+    border-radius: var(--bo-tron);
+    transition: var(--chuyen-dong);
+    display: flex;
+    align-items: center;
+}
+
+.nut-dropdown:hover {
+    background: var(--mau-nen-3);
+}
+
+.noi-dung-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 50px;
+    background-color: #ffffff;
+    min-width: 200px;
+    box-shadow: 0px 8px 20px rgba(0,0,0,0.15);
+    z-index: 2000;
+    border-radius: var(--bo-tron);
+    border: 1px solid var(--mau-nen-3);
+    overflow: hidden;
+}
+
+.noi-dung-dropdown.hien-thi {
+    display: block;
+    animation: slideDown 0.2s ease;
+}
+
+.muc-dropdown {
+    color: var(--mau-chu);
+    padding: 12px 16px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: var(--chuyen-dong);
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.muc-dropdown:hover {
+    background-color: var(--mau-chinh-nen);
+    color: var(--mau-chinh);
+}
+
+.muc-dropdown.dang-xuat-dd {
+    border-top: 1px solid var(--mau-nen-3);
+    color: var(--mau-do);
+}
+.muc-dropdown.dang-xuat-dd:hover {
+    background-color: var(--mau-do-nen);
+}
+
 /* Noi dung chinh */
 .noi-dung-chinh {
     flex: 1;
-    margin-left: 270px;
+    margin-left: 0;
     padding: 32px;
     min-height: 100vh;
     background: var(--mau-nen);

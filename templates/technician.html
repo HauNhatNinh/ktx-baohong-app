@@ -30,14 +30,23 @@
                     <span class="bieu-tuong-menu">📋</span> <span>Danh sách phiếu</span>
                     <span id="badge-phieu-moi" class="badge-thong-bao"></span>
                 </button>
-                <button class="muc-menu" onclick="chuyenMuc('thong-tin')">
-                    <span class="bieu-tuong-menu">👤</span> <span>Thông tin cá nhân</span>
-                </button>
-                <button class="muc-menu" onclick="hienModalDoiMK()">
-                    <span class="bieu-tuong-menu">🔑</span> <span>Đổi mật khẩu</span>
-                </button>
             </nav>
-            <button class="nut-dang-xuat" onclick="dangXuat()">🚪 Đăng xuất</button>
+            <div class="vien-dropdown">
+                <button class="nut-dropdown" onclick="document.getElementById('dd-menu').classList.toggle('hien-thi')">
+                    ☰
+                </button>
+                <div id="dd-menu" class="noi-dung-dropdown">
+                    <button class="muc-dropdown" onclick="chuyenMuc('thong-tin'); document.getElementById('dd-menu').classList.remove('hien-thi');">
+                        <span class="bieu-tuong-menu">👤</span> Thông tin cá nhân
+                    </button>
+                    <button class="muc-dropdown" onclick="hienModalDoiMK(); document.getElementById('dd-menu').classList.remove('hien-thi');">
+                        <span class="bieu-tuong-menu">🔑</span> Đổi mật khẩu
+                    </button>
+                    <button class="muc-dropdown dang-xuat-dd" onclick="dangXuat()">
+                        <span class="bieu-tuong-menu">🚪</span> Đăng xuất
+                    </button>
+                </div>
+            </div>
         </aside>
 
         <main class="noi-dung-chinh">
@@ -604,6 +613,15 @@
         function dangXuat() {
             if (boHenGioThongBao) clearInterval(boHenGioThongBao);
             fetch('/api/dang-xuat', { method: 'POST' }).then(function () { window.location.href = '/'; });
+        }
+        
+        window.onclick = function(event) {
+            if (!event.target.closest('.vien-dropdown')) {
+                var dd = document.getElementById('dd-menu');
+                if (dd && dd.classList.contains('hien-thi')) {
+                    dd.classList.remove('hien-thi');
+                }
+            }
         }
     </script>
     
