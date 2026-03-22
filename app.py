@@ -1016,6 +1016,7 @@ def xuat_bao_cao():
                    nd.so_dien_thoai AS 'SĐT Người Báo',
                    pb.ngay_tao AS 'Ngày Báo',
                    kt.ho_ten AS 'Kỹ Thuật Viên',
+                   kt.to_ky_thuat AS 'to_kt_raw',
                    pc.ngay_cap_nhat AS 'Ngày Hoàn Thành',
                    pc.ghi_chu AS 'Ghi Chú KTV'
             FROM phieubaohong pb
@@ -1041,9 +1042,11 @@ def xuat_bao_cao():
             'tu_choi_sua': 'Từ chối sửa'
         }
         
+        ten_to_dict = {'dien': 'Tổ Điện', 'nuoc': 'Tổ Nước', 'khac': 'Tổ Khác'}
         for phieu in ds_phieu:
             phieu['Mức Độ'] = 'Khẩn cấp' if phieu['Mức Độ'] == 'khancap' else 'Thường'
             phieu['Trạng Thái'] = trang_thai_dict.get(phieu['Trạng Thái'], phieu['Trạng Thái'])
+            phieu['Tổ Kỹ Thuật'] = ten_to_dict.get(phieu.pop('to_kt_raw', None) or '', '---')
             if phieu['Ngày Báo']:
                 phieu['Ngày Báo'] = phieu['Ngày Báo'].strftime('%d/%m/%Y %H:%M:%S')
             if phieu['Ngày Hoàn Thành']:
@@ -1051,8 +1054,12 @@ def xuat_bao_cao():
                 
         df = pd.DataFrame(ds_phieu)
         if df.empty:
-            columns = ['Mã Phiếu', 'Tên Lỗi', 'Mức Độ', 'Trạng Thái', 'Phòng', 'Tòa Nhà', 'Người Báo', 'SĐT Người Báo', 'Ngày Báo', 'Kỹ Thuật Viên', 'Ngày Hoàn Thành', 'Ghi Chú KTV']
+            columns = ['Mã Phiếu', 'Tên Lỗi', 'Mức Độ', 'Trạng Thái', 'Phòng', 'Tòa Nhà', 'Người Báo', 'SĐT Người Báo', 'Ngày Báo', 'Kỹ Thuật Viên', 'Tổ Kỹ Thuật', 'Ngày Hoàn Thành', 'Ghi Chú KTV']
             df = pd.DataFrame(columns=columns)
+        else:
+            # Sap xep lai cot theo dung thu tu
+            col_order = ['Mã Phiếu', 'Tên Lỗi', 'Mức Độ', 'Trạng Thái', 'Phòng', 'Tòa Nhà', 'Người Báo', 'SĐT Người Báo', 'Ngày Báo', 'Kỹ Thuật Viên', 'Tổ Kỹ Thuật', 'Ngày Hoàn Thành', 'Ghi Chú KTV']
+            df = df[[c for c in col_order if c in df.columns]]
             
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
@@ -1624,7 +1631,7 @@ def xem_log():
         with open(log_path, 'r', encoding='utf-8') as f:
             return f.read(), 200, {'Content-Type': 'text/plain; charset=utf-8'}
     except Exception as e:
-        return f"Không thể đọc file: {str(e)}", 500
+        return f"Khong the doc file: {str(e)}", 500
 
 @app.route('/api/quen-mat-khau', methods=['POST'])
 def quen_mat_khau():
