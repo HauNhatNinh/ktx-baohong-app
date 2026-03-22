@@ -204,6 +204,15 @@
                 <button class="nut-dong" onclick="dongModal('modal-phancong')">✕</button>
             </div>
             <div class="nhom-truong">
+                <label>Lọc theo tổ</label>
+                <select id="loc-to-kt" onchange="locKTTheoTo()" style="margin-bottom:8px;">
+                    <option value="">✨ Tất cả các tổ</option>
+                    <option value="dien">⚡ Tổ Điện</option>
+                    <option value="nuoc">💧 Tổ Nước</option>
+                    <option value="khac">🔧 Tổ Khác</option>
+                </select>
+            </div>
+            <div class="nhom-truong">
                 <label>Chọn kỹ thuật viên</label>
                 <select id="chon-kythuat">
                     <option value="">-- Chọn --</option>
@@ -442,28 +451,46 @@
                 });
         }
 
+        var _dsKyThuat = [];
         function moPhanCong(maPhieu) {
             document.getElementById('ma-phieu-phancong').value = maPhieu;
+            document.getElementById('loc-to-kt').value = '';
             fetch('/api/quanly/ds-kythuat')
                 .then(function (r) { return r.json(); })
                 .then(function (kq) {
                     if (kq.thanh_cong) {
-                        var select = document.getElementById('chon-kythuat');
-                        select.innerHTML = '<option value="">-- Chọn kỹ thuật viên --</option>';
-                        kq.du_lieu.forEach(function (kt) {
-                            var opt = document.createElement('option');
-                            opt.value = kt.ma_nguoidung;
-                            if (kt.dang_ban > 0) {
-                                opt.textContent = kt.ho_ten + ' (' + kt.tai_khoan + ') - Đang bận';
-                                opt.disabled = true;
-                            } else {
-                                opt.textContent = kt.ho_ten + ' (' + kt.tai_khoan + ')';
-                            }
-                            select.appendChild(opt);
-                        });
+                        _dsKyThuat = kq.du_lieu;
+                        renderDsKyThuat(_dsKyThuat);
                     }
                 });
             document.getElementById('modal-phancong').classList.add('hien-thi');
+        }
+
+        function locKTTheoTo() {
+            var to = document.getElementById('loc-to-kt').value;
+            var ds = to ? _dsKyThuat.filter(function(kt){ return kt.to_ky_thuat === to; }) : _dsKyThuat;
+            renderDsKyThuat(ds);
+        }
+
+        function renderDsKyThuat(ds) {
+            var select = document.getElementById('chon-kythuat');
+            select.innerHTML = '<option value="">-- Chọn kỹ thuật viên --</option>';
+            var tenTo = {dien:'⚡ Tổ Điện',nuoc:'💧 Tổ Nước',khac:'🔧 Tổ Khác'};
+            ds.forEach(function (kt) {
+                var opt = document.createElement('option');
+                opt.value = kt.ma_nguoidung;
+                var nhan_to = kt.to_ky_thuat ? '[' + (tenTo[kt.to_ky_thuat] || kt.to_ky_thuat) + '] ' : '';
+                if (kt.dang_ban > 0) {
+                    opt.textContent = nhan_to + kt.ho_ten + ' (' + kt.tai_khoan + ') - 🟥 Đang bận';
+                    opt.disabled = true;
+                } else {
+                    opt.textContent = nhan_to + kt.ho_ten + ' (' + kt.tai_khoan + ') - 🟢 Rảnh';
+                }
+                select.appendChild(opt);
+            });
+            if (ds.length === 0) {
+                select.innerHTML += '<option disabled>Không có kỹ thuật viên trong tổ này</option>';
+            }
         }
 
         function guiPhanCong() {

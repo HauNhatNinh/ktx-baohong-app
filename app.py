@@ -500,9 +500,30 @@ def tao_phieu_bao_hong():
         ))
         ma_phieu = con_tro.lastrowid
         
-        # Neu khan cap: tu dong gui den tat ca ky thuat vien
+        # Cap nhat: Khan cap -> tu dong phan cong toan to tuong ung theo tu khoa
         if muc_do == 'khancap':
-            con_tro.execute("SELECT ma_nguoidung FROM nguoidung WHERE vai_tro = 'kythuat' AND trang_thai = 'da_duyet'")
+            tu_khoa_ten_loi = (ten_loi + ' ' + mo_ta).lower()
+            
+            # Xac dinh to theo tu khoa
+            tu_khoa_dien = ['dien', 'den', 'bong', 'cau dao', 'chay no', 'chap dien', 'socket', 'o cam']
+            tu_khoa_nuoc = ['nuoc', 'voi', 'ong', 'thoat nuoc', 'ngap', 'ro ri', 'nuoc bon', 'bon cau']
+            
+            to_can_goi = None
+            for kw in tu_khoa_dien:
+                if kw in tu_khoa_ten_loi:
+                    to_can_goi = 'dien'
+                    break
+            if not to_can_goi:
+                for kw in tu_khoa_nuoc:
+                    if kw in tu_khoa_ten_loi:
+                        to_can_goi = 'nuoc'
+                        break
+            
+            # Lay danh sach KTV cua to tuong ung (neu khong khop thi lay het)
+            if to_can_goi:
+                con_tro.execute("SELECT ma_nguoidung FROM nguoidung WHERE vai_tro = 'kythuat' AND trang_thai = 'da_duyet' AND to_ky_thuat = %s", (to_can_goi,))
+            else:
+                con_tro.execute("SELECT ma_nguoidung FROM nguoidung WHERE vai_tro = 'kythuat' AND trang_thai = 'da_duyet'")
             ds_kythuat = con_tro.fetchall()
             for kt in ds_kythuat:
                 # Tim quan ly cua toa nha
@@ -854,20 +875,34 @@ def duyet_dang_ky():
 def ds_ky_thuat_vien():
     if 'ma_nguoidung' not in session:
         return jsonify({'thanh_cong': False}), 401
+    to_loc = request.args.get('to', None)  # filter theo to: dien, nuoc, khac
     conn = ket_noi_db()
     if not conn:
         return jsonify({'thanh_cong': False}), 500
     try:
         con_tro = conn.cursor(dictionary=True)
-        con_tro.execute("""
-            SELECT nd.ma_nguoidung, nd.ho_ten, nd.tai_khoan,
+        query = """
+            SELECT nd.ma_nguoidung, nd.ho_ten, nd.tai_khoan, nd.so_dien_thoai,
+                   nd.to_ky_thuat,
+                   CASE nd.to_ky_thuat
+                       WHEN 'dien' THEN '⚡ Tổ Điện'
+                       WHEN 'nuoc' THEN '💧 Tổ Nước'
+                       WHEN 'khac' THEN '🔧 Tổ Khác'
+                       ELSE '❓ Chưa phân tổ'
+                   END AS ten_to,
                    (SELECT COUNT(*) FROM phancong pc 
                     JOIN phieubaohong pb ON pc.ma_phieu = pb.ma_phieu
                     WHERE pc.ma_kythuat = nd.ma_nguoidung 
-                    AND pb.trang_thai IN ('da_phan_cong', 'dang_xu_ly', 'da_hoan_thanh')) AS dang_ban
+                    AND pb.trang_thai IN ('da_phan_cong', 'dang_xu_ly')) AS dang_ban
             FROM nguoidung nd 
             WHERE nd.vai_tro = 'kythuat' AND nd.trang_thai = 'da_duyet'
-        """)
+        """
+        params = []
+        if to_loc in ['dien', 'nuoc', 'khac']:
+            query += " AND nd.to_ky_thuat = %s"
+            params.append(to_loc)
+        query += " ORDER BY nd.to_ky_thuat, nd.ho_ten"
+        con_tro.execute(query, params)
         ds = con_tro.fetchall()
         return jsonify({'thanh_cong': True, 'du_lieu': ds})
     finally:
@@ -1300,7 +1335,7 @@ def admin_ds_nguoidung():
         con_tro = conn.cursor(dictionary=True)
         con_tro.execute("""
             SELECT nd.ma_nguoidung, nd.tai_khoan, nd.ho_ten, nd.vai_tro, nd.trang_thai, 
-                   nd.so_dien_thoai, nd.ngay_tao, t.ten_toanha
+                   nd.so_dien_thoai, nd.ngay_tao, t.ten_toanha, nd.to_ky_thuat
             FROM nguoidung nd
             LEFT JOIN toanha t ON nd.ma_toanha_quanly = t.ma_toanha
             WHERE nd.vai_tro != 'admin'
@@ -1326,12 +1361,19 @@ def admin_tao_tai_khoan():
     vai_tro = du_lieu.get('vai_tro', '')
     ma_toanha_quanly = du_lieu.get('ma_toanha_quanly')
     so_dien_thoai = du_lieu.get('so_dien_thoai', '')
+    to_ky_thuat = du_lieu.get('to_ky_thuat', None)  # NEW: To ky thuat
     
     if not all([tai_khoan, mat_khau, ho_ten, vai_tro]):
         return jsonify({'thanh_cong': False, 'thong_bao': 'Vui lòng điền đầy đủ thông tin'})
     
     if vai_tro not in ['quanly', 'kythuat']:
         return jsonify({'thanh_cong': False, 'thong_bao': 'Vai trò không hợp lệ'})
+    
+    # Validate to_ky_thuat cho kythuat
+    if vai_tro == 'kythuat' and to_ky_thuat not in ['dien', 'nuoc', 'khac', None]:
+        to_ky_thuat = 'khac'
+    if vai_tro != 'kythuat':
+        to_ky_thuat = None
     
     conn = ket_noi_db()
     if not conn:
@@ -1344,11 +1386,17 @@ def admin_tao_tai_khoan():
         
         hashed_password = generate_password_hash(mat_khau)
         con_tro.execute("""
-            INSERT INTO nguoidung (tai_khoan, mat_khau, ho_ten, vai_tro, trang_thai, ma_toanha_quanly, so_dien_thoai)
-            VALUES (%s, %s, %s, %s, 'da_duyet', %s, %s)
-        """, (tai_khoan, hashed_password, ho_ten, vai_tro, ma_toanha_quanly if vai_tro == 'quanly' else None, so_dien_thoai))
+            INSERT INTO nguoidung (tai_khoan, mat_khau, ho_ten, vai_tro, trang_thai, ma_toanha_quanly, so_dien_thoai, to_ky_thuat)
+            VALUES (%s, %s, %s, %s, 'da_duyet', %s, %s, %s)
+        """, (tai_khoan, hashed_password, ho_ten, vai_tro,
+               ma_toanha_quanly if vai_tro == 'quanly' else None,
+               so_dien_thoai, to_ky_thuat))
         conn.commit()
-        return jsonify({'thanh_cong': True, 'thong_bao': f'Tạo tài khoản {vai_tro} thành công'})
+        ten_to = {'dien': 'Tổ Điện', 'nuoc': 'Tổ Nước', 'khac': 'Tổ Khác'}.get(to_ky_thuat or '', '')
+        thong_bao = f'Tạo tài khoản {vai_tro} thành công'
+        if ten_to:
+            thong_bao += f' - {ten_to}'
+        return jsonify({'thanh_cong': True, 'thong_bao': thong_bao})
     finally:
         conn.close()
 

@@ -83,6 +83,15 @@
                                     <option value="">-- Chọn tòa --</option>
                                 </select>
                             </div>
+                            <div class="nhom-truong" id="nhom-to-kt" style="display:none;">
+                                <label>Tổ kỹ thuật *</label>
+                                <select id="tk-to-ky-thuat" required>
+                                    <option value="">-- Chọn tổ --</option>
+                                    <option value="dien">⚡ Tổ Điện</option>
+                                    <option value="nuoc">💧 Tổ Nước</option>
+                                    <option value="khac">🔧 Tổ Khác</option>
+                                </select>
+                            </div>
                         </div>
                         <button type="submit" class="nut-chinh" style="width:auto; padding:12px 32px;">Tạo Tài
                             Khoản</button>
@@ -147,6 +156,9 @@
         function thayDoiVaiTro() {
             var vaiTro = document.getElementById('tk-vaitro').value;
             document.getElementById('nhom-toanha').style.display = vaiTro === 'quanly' ? 'block' : 'none';
+            document.getElementById('nhom-to-kt').style.display = vaiTro === 'kythuat' ? 'block' : 'none';
+            // Dat/bo required cho select to
+            document.getElementById('tk-to-ky-thuat').required = vaiTro === 'kythuat';
         }
 
         function taoTaiKhoan(suKien) {
@@ -157,7 +169,8 @@
                 ho_ten: document.getElementById('tk-hoten').value,
                 so_dien_thoai: document.getElementById('tk-sdt').value,
                 vai_tro: document.getElementById('tk-vaitro').value,
-                ma_toanha_quanly: parseInt(document.getElementById('tk-toanha').value) || null
+                ma_toanha_quanly: parseInt(document.getElementById('tk-toanha').value) || null,
+                to_ky_thuat: document.getElementById('tk-to-ky-thuat').value || null
             };
 
             if (!duLieu.vai_tro) {
@@ -196,7 +209,7 @@
                         }
 
                         var html = '<div class="khung-bang"><table class="bang-du-lieu"><thead><tr>' +
-                            '<th>Tài khoản</th><th>Họ tên</th><th>Vai trò</th><th>Trạng thái</th><th>SĐT</th><th>Tòa QL</th><th>Ngày tạo</th><th>Hành động</th>' +
+                            '<th>Tài khoản</th><th>Họ tên</th><th>Vai trò</th><th>Tổ KT</th><th>Trạng thái</th><th>SĐT</th><th>Tòa QL</th><th>Ngày tạo</th><th>Hành động</th>' +
                             '</tr></thead><tbody>';
 
                         dsLoc.forEach(function (nd) {
@@ -204,10 +217,12 @@
                             var lopTT = nd.trang_thai === 'da_duyet' ? 'xanh' : (nd.trang_thai === 'cho_duyet' ? 'vang' : 'do');
                             var tenTT = { 'da_duyet': 'Đã duyệt', 'cho_duyet': 'Chờ duyệt', 'tu_choi': 'Từ chối' };
 
+                            var tenToKT = {'dien':'<span class="nhan-trang-thai vang">⚡ Tổ Điện</span>','nuoc':'<span class="nhan-trang-thai xanh-duong">💧 Tổ Nước</span>','khac':'<span class="nhan-trang-thai">🔧 Tổ Khác</span>'};
                             html += '<tr>' +
                                 '<td>' + nd.tai_khoan + '</td>' +
                                 '<td>' + nd.ho_ten + '</td>' +
                                 '<td><span class="nhan-trang-thai xanh-duong">' + (tenVaiTro[nd.vai_tro] || nd.vai_tro) + '</span></td>' +
+                                '<td>' + (nd.vai_tro === 'kythuat' ? (tenToKT[nd.to_ky_thuat] || '<span style="color:#9ca3af">Chưa phân tổ</span>') : '---') + '</td>' +
                                 '<td><span class="nhan-trang-thai ' + lopTT + '">' + (tenTT[nd.trang_thai] || nd.trang_thai) + '</span></td>' +
                                 '<td>' + (nd.so_dien_thoai || '---') + '</td>' +
                                 '<td>' + (nd.ten_toanha || '---') + '</td>' +

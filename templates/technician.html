@@ -415,6 +415,9 @@
                     '<p><strong>Phòng:</strong> ' + p.ten_phong + ' - ' + p.ten_toanha + '</p>' +
                     '<p><strong>Thời gian phân công:</strong> ' + p.ngay_phan_cong + '</p>' +
                     '<p><strong>Thời gian tạo phiếu:</strong> ' + (p.ngay_tao_phieu || p.ngay_tao) + '</p>' +
+                    (phieu.ngay_cap_nhat_phancong && phieu.trang_thai_phancong === 'hoan_thanh'
+                        ? '<p><strong>✅ Hoàn thành sửa lúc:</strong> <span style="color:#10b981;font-weight:600;">' + phieu.ngay_cap_nhat_phancong + '</span></p>'
+                        : '') +
                     '</div>' +
                     '<div class="nhom-nut">' +
                     '<button class="nut-phu" onclick="xemChiTiet(' + p.ma_phancong + ')">👁️ Chi tiết</button>';
