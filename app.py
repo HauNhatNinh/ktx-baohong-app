@@ -783,7 +783,7 @@ def duyet_dang_ky():
         # Gui email
         thong_bao_kq = f'Đã {"duyệt" if chap_nhan else "từ chối"} tài khoản.'
         if chap_nhan and sv and sv.get('email'):
-            tieu_de = "✅ ĐỐI VỚI SINH VIÊN: Duyệt Tài Khoản KTX Thành Công"
+            tieu_de = "✅ Duyệt Tài Khoản KTX Thành Công"
             noi_dung = f'''
             <h3>Chào bạn {sv.get('ho_ten')},</h3>
             <p>Tài khoản Hệ Thống Báo Hỏng KTX của bạn đã được Quản Lý KTX phê duyệt thành công.</p>
