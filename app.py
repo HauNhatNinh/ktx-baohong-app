@@ -1449,10 +1449,12 @@ def dem_so_luong_thong_bao():
 # ============================
 def gui_email_thong_bao(email_nhan, tieu_de, noi_dung):
     import time
+    import os
     email_gui = os.environ.get('MAIL_USERNAME', '')
     mat_khau = os.environ.get('MAIL_PASSWORD', '')
     
-    with open('email_log.txt', 'a', encoding='utf-8') as f:
+    log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'email_log.txt')
+    with open(log_path, 'a', encoding='utf-8') as f:
         ghilog = lambda msg: f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
         
         # Tạm thời cứ thử gửi nếu có setup trong .env, nếu không có thì bỏ qua
