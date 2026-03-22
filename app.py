@@ -1480,7 +1480,7 @@ def gui_email_thong_bao(email_nhan, tieu_de, noi_dung):
             socket.getaddrinfo = ipv4_getaddrinfo
             
             try:
-                server = smtplib.SMTP('smtp.gmail.com', 587, timeout=15)
+                server = smtplib.SMTP('smtp.gmail.com', 587, timeout=3)
                 server.set_debuglevel(0)
                 server.starttls()
                 server.login(email_gui, mat_khau)
