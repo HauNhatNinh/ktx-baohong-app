@@ -56,6 +56,9 @@ def ket_noi_db():
             charset='utf8mb4',
             ssl_disabled=False
         )
+        cur = conn.cursor()
+        cur.execute("SET time_zone = '+07:00'")
+        cur.close()
         return conn
     except Error as e:
         print(f"Loi ket noi database: {e}")
@@ -211,6 +214,20 @@ def dang_ky():
             (tai_khoan, hashed_password, ho_ten, email, ten_file_anh, lop, khoa, ma_phong)
         )
         conn.commit()
+        
+        # Gửi email thông báo ngay khi vừa đăng ký
+        if email:
+            tieu_de = "⏳ Tiếp nhận thông tin Đăng Ký Tài Khoản KTX"
+            noi_dung = f'''
+            <h3>Xin chào {ho_ten},</h3>
+            <p>Hệ thống Ký túc xá đã nhận được yêu cầu đăng ký tài khoản của bạn với MSSV: <b>{tai_khoan}</b>.</p>
+            <p>Tài khoản của bạn hiện đang ở trạng thái <b>Chờ Xét Duyệt</b>.</p>
+            <p>Ban Quản Lý KTX sẽ kiểm tra thông tin và ảnh thẻ sinh viên của bạn. Khi được duyệt, chúng tôi sẽ gửi thêm một email thông báo nữa cho bạn.</p>
+            <br>
+            <p>Cảm ơn bạn.<br><b>Ban Quản Lý KTX</b></p>
+            '''
+            gui_email_thong_bao(email, tieu_de, noi_dung)
+            
         return jsonify({'thanh_cong': True, 'thong_bao': 'Đăng ký thành công! Vui lòng chờ quản lý KTX xác minh.'})
     except Exception as e:
         return jsonify({'thanh_cong': False, 'thong_bao': 'Có lỗi xảy ra, thử lại sau.'})
