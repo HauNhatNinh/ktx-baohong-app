@@ -201,12 +201,19 @@ def dang_ky():
         con_tro = conn.cursor(dictionary=True)
         # Kiem tra tai khoan hoac email da ton tai
         con_tro.execute("SELECT * FROM nguoidung WHERE tai_khoan = %s", (tai_khoan,))
-        if con_tro.fetchone():
-            return jsonify({'thanh_cong': False, 'thong_bao': 'Mã số sinh viên đã được đăng ký'})
+        user_tk = con_tro.fetchone()
+        if user_tk:
+            if user_tk['trang_thai'] != 'tu_choi':
+                return jsonify({'thanh_cong': False, 'thong_bao': 'Mã số sinh viên đã được đăng ký'})
             
         con_tro.execute("SELECT * FROM nguoidung WHERE email = %s", (email,))
-        if con_tro.fetchone():
-            return jsonify({'thanh_cong': False, 'thong_bao': 'Email này đã được sử dụng'})
+        user_email = con_tro.fetchone()
+        if user_email:
+            if user_email['trang_thai'] != 'tu_choi':
+                return jsonify({'thanh_cong': False, 'thong_bao': 'Email này đã được sử dụng'})
+        
+        # Xoá dữ liệu cũ nếu bị từ chối trước đó để cho phép đăng ký lại
+        con_tro.execute("DELETE FROM nguoidung WHERE (tai_khoan = %s OR email = %s) AND trang_thai = 'tu_choi'", (tai_khoan, email))
         
         hashed_password = generate_password_hash(mat_khau)
         con_tro.execute(
