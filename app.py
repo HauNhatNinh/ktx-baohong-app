@@ -1471,7 +1471,8 @@ def gui_email_thong_bao(email_nhan, tieu_de, noi_dung):
             msg.attach(MIMEText(noi_dung, 'html', 'utf-8'))
             
             ghilog(f"BAT DAU GUI: {email_nhan} | Tieu de: {tieu_de}")
-            server = smtplib.SMTP('smtp.gmail.com', 587, timeout=15)
+            # Ép dùng IPv4 do Render chặn IPv6 (Errno 101)
+            server = smtplib.SMTP('smtp.gmail.com', 587, timeout=15, source_address=('0.0.0.0', 0))
             server.set_debuglevel(0) # Để = 1 nếu muốn in ra terminal
             server.starttls()
             server.login(email_gui, mat_khau)
