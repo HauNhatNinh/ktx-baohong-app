@@ -17,6 +17,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import random
 import string
+import threading
 
 load_dotenv()
 
@@ -226,7 +227,7 @@ def dang_ky():
             <br>
             <p>Cảm ơn bạn.<br><b>Ban Quản Lý KTX</b></p>
             '''
-            gui_email_thong_bao(email, tieu_de, noi_dung)
+            threading.Thread(target=gui_email_thong_bao, args=(email, tieu_de, noi_dung), daemon=True).start()
             
         return jsonify({'thanh_cong': True, 'thong_bao': 'Đăng ký thành công! Vui lòng chờ quản lý KTX xác minh.'})
     except Exception as e:
@@ -784,7 +785,7 @@ def duyet_dang_ky():
             <br>
             <p>Cảm ơn bạn.<br><b>Ban Quản Lý KTX</b></p>
             '''
-            gui_email_thong_bao(sv.get('email'), tieu_de, noi_dung)
+            threading.Thread(target=gui_email_thong_bao, args=(sv.get('email'), tieu_de, noi_dung), daemon=True).start()
             thong_bao_kq += ' Đã gửi Email thông báo tới sinh viên.'
 
         return jsonify({'thanh_cong': True, 'thong_bao': thong_bao_kq})
@@ -1454,7 +1455,7 @@ def gui_email_thong_bao(email_nhan, tieu_de, noi_dung):
         msg['Subject'] = tieu_de
         msg.attach(MIMEText(noi_dung, 'html', 'utf-8'))
         
-        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=10)
         server.starttls()
         server.login(email_gui, mat_khau)
         server.send_message(msg)
