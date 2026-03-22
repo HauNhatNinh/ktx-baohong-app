@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Báo Hỏng KTX - Đăng Nhập</title>
+    <link rel="icon" href="/static/logo.png" type="image/png">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <div class="trang-dang-nhap">
+        <div class="hop-dang-nhap">
+            <div class="logo">
+                <div class="bieu-tuong" style="background: transparent; box-shadow: none;">
+                    <img src="/static/logo.png" alt="Logo"
+                        style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                </div>
+                <h1>Hệ Thống Báo Hỏng KTX</h1>
+                <p>Quản lý sự cố ký túc xá trường Đại học Kỹ thuật Công nghiệp Thái Nguyên</p>
+            </div>
+
+            <!-- Tab chuyen doi -->
+            <div class="tab-chuyen-doi">
+                <button class="tab dang-chon" onclick="chuyenTab('dangnhap')">Đăng Nhập</button>
+                <button class="tab" onclick="chuyenTab('dangky')">Đăng Ký</button>
+            </div>
+
+            <!-- Form dang nhap -->
+            <div id="form-dangnhap" class="noi-dung-tab hien-thi">
+                <form onsubmit="xuLyDangNhap(event)">
+                    <div class="nhom-truong">
+                        <label>Tài khoản / MSSV</label>
+                        <input type="text" id="dn-taikhoan" placeholder="Nhập tài khoản hoặc MSSV" required>
+                    </div>
+                    <div class="nhom-truong">
+                        <label>Mật khẩu</label>
+                        <input type="password" id="dn-matkhau" placeholder="Nhập mật khẩu" required>
+                    </div>
+                    <button type="submit" class="nut-chinh">Đăng Nhập</button>
+                    <div style="text-align: right; margin-top: 10px;">
+                        <a href="#" onclick="hienThietLapMatKhau(); return false;" style="color: var(--mau-chinh); font-size: 13px; font-weight: 500; text-decoration: none;">Quên mật khẩu?</a>
+                    </div>
+                    <div id="thongbao-dangnhap" class="thong-bao">Đăng nhập thành công</div>
+                </form>
+            </div>
+
+            <!-- Form dang ky -->
+            <div id="form-dangky" class="noi-dung-tab">
+                <form onsubmit="xuLyDangKy(event)">
+                    <div class="nhom-truong">
+                        <label>Mã số sinh viên (MSSV)</label>
+                        <input type="text" id="dk-mssv" placeholder="Nhập MSSV" required>
+                    </div>
+                    <div class="nhom-truong">
+                        <label>Mật khẩu</label>
+                        <input type="password" id="dk-matkhau" placeholder="Nhập mật khẩu" required>
+                    </div>
+                    <div class="nhom-truong">
+                        <label>Họ và tên</label>
+                        <input type="text" id="dk-hoten" placeholder="Nhập họ và tên" required>
+                    </div>
+                    <div class="nhom-truong">
+                        <label>Email cá nhân</label>
+                        <input type="email" id="dk-email" placeholder="Nhập Email để nhận thông báo / Lấy lại MK" required>
+                    </div>
+                    <div class="hang-truong">
+                        <div class="nhom-truong">
+                            <label>Lớp</label>
+                            <input type="text" id="dk-lop" placeholder="VD: K58KMT" required>
+                        </div>
+                        <div class="nhom-truong">
+                            <label>Khoa</label>
+                            <input type="text" id="dk-khoa" placeholder="VD: Điện tử" required>
+                        </div>
+                    </div>
+                    <div class="hang-truong">
+                        <div class="nhom-truong">
+                            <label>Tòa nhà</label>
+                            <select id="dk-toanha" onchange="taiDanhSachPhong(this.value, 'dk-phong')" required>
+                                <option value="">-- Chọn tòa nhà --</option>
+                            </select>
+                        </div>
+                        <div class="nhom-truong">
+                            <label>Phòng</label>
+                            <select id="dk-phong" required>
+                                <option value="">-- Chọn phòng --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Ảnh thẻ -->
+                    <div class="nhom-truong">
+                        <label>Ảnh Thẻ Sinh Viên *</label>
+                        <div class="khung-upload">
+                            <input type="file" id="dk-anhthesv" accept="image/*" required
+                                onchange="xemTruocAnhDangKy(this)">
+                            <div class="bieu-tuong-upload">📷</div>
+                            <div style="font-size: 13px; color: var(--mau-chu-phu);">Nhấp hoặc kéo thả để tải thẻ SV lên đây</div>
+                        </div>
+                        <img id="xem-truoc-dk" class="anh-minh-chung" style="display:none; margin-top:10px;">
+                    </div>
+                    <button type="submit" class="nut-chinh">Gửi Yêu Cầu Đăng Ký</button>
+                    <div id="thongbao-dangky" class="thong-bao">Đăng ký thành công</div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Quen Mat Khau -->
+    <div id="modal-quen-mk" class="modal-overlay" onclick="if(event.target===this)dongModal('modal-quen-mk')">
+        <div class="modal-noi-dung" style="max-width: 400px; background: #fff; padding: 24px; border-radius: var(--bo-tron-lon); margin: 10vh auto;">
+            <div class="modal-tieu-de" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0; color: var(--mau-chu);">Khôi phục mật khẩu</h3>
+                <button onclick="dongModal('modal-quen-mk')" style="background: none; border: none; font-size: 18px; cursor: pointer;">✕</button>
+            </div>
+            <form id="form-quen-mk" onsubmit="xuLyQuenMK(event)">
+                <div class="nhom-truong">
+                    <label>Bạn là ai?</label>
+                    <select id="qmk-vaitro" onchange="doiLoaiQMK()" required>
+                        <option value="sinhvien">Sinh viên</option>
+                        <option value="quanly">Quản lý / Kỹ Thuật</option>
+                    </select>
+                </div>
+                <div class="nhom-truong">
+                    <label id="lbl-qmk-taikhoan">Tài khoản (MSSV)</label>
+                    <input type="text" id="qmk-taikhoan" placeholder="Nhập tài khoản" required>
+                </div>
+                <div class="nhom-truong" id="div-qmk-xacminh">
+                    <label id="lbl-qmk-xacminh">Email đã đăng ký</label>
+                    <input type="text" id="qmk-xacminh" placeholder="Nhập email..." required>
+                </div>
+                <!-- Vùng hiển thị sau khi xác minh thành công cho KTV/QL -->
+                <div id="vung-qmk-mkmoi" style="display:none; margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 15px;">
+                    <p style="font-size: 13px; color: var(--mau-xanh); margin-bottom: 10px;">Xác minh thành công! Mời đặt mật khẩu mới.</p>
+                    <div class="nhom-truong">
+                        <label>Mật khẩu mới</label>
+                        <input type="password" id="qmk-matkhau-moi">
+                    </div>
+                </div>
+                <button type="submit" id="btn-qmk" class="nut-chinh">Gửi Yêu Cầu</button>
+                <div id="thongbao-quenmk" class="thong-bao"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Chuyen tab dang nhap / dang ky
+        function chuyenTab(tenTab) {
+            document.querySelectorAll('.tab').forEach(function (tab) { tab.classList.remove('dang-chon'); });
+            document.querySelectorAll('.noi-dung-tab').forEach(function (nd) { nd.classList.remove('hien-thi'); });
+
+            if (tenTab === 'dangnhap') {
+                document.querySelectorAll('.tab')[0].classList.add('dang-chon');
+                document.getElementById('form-dangnhap').classList.add('hien-thi');
+            } else {
+                document.querySelectorAll('.tab')[1].classList.add('dang-chon');
+                document.getElementById('form-dangky').classList.add('hien-thi');
+                taiDanhSachToaNha();
+            }
+        }
+
+        function dongModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function hienThietLapMatKhau() {
+            document.getElementById('modal-quen-mk').style.display = 'block';
+            doiLoaiQMK();
+            document.getElementById('vung-qmk-mkmoi').style.display = 'none';
+            document.getElementById('btn-qmk').textContent = "Gửi Yêu Cầu";
+            document.getElementById('form-quen-mk').reset();
+            document.getElementById('form-quen-mk').onsubmit = xuLyQuenMK;
+        }
+
+        function doiLoaiQMK() {
+            var vt = document.getElementById('qmk-vaitro').value;
+            if(vt === 'sinhvien') {
+                document.getElementById('lbl-qmk-taikhoan').innerText = "Mã số sinh viên (MSSV)";
+                document.getElementById('lbl-qmk-xacminh').innerText = "Email đã đăng ký";
+                document.getElementById('qmk-xacminh').type = "email";
+                document.getElementById('qmk-xacminh').placeholder = "Nhập email...";
+            } else {
+                document.getElementById('lbl-qmk-taikhoan').innerText = "Tên đăng nhập";
+                document.getElementById('lbl-qmk-xacminh').innerText = "Số điện thoại đã lưu";
+                document.getElementById('qmk-xacminh').type = "text";
+                document.getElementById('qmk-xacminh').placeholder = "Nhập SĐT...";
+            }
+        }
+
+        function xuLyQuenMK(e) {
+            e.preventDefault();
+            var vt = document.getElementById('qmk-vaitro').value;
+            var tk = document.getElementById('qmk-taikhoan').value;
+            var xm = document.getElementById('qmk-xacminh').value;
+
+            document.getElementById('btn-qmk').disabled = true;
+            document.getElementById('btn-qmk').textContent = "Đang xử lý...";
+
+            fetch('/api/quen-mat-khau', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ vai_tro: vt, tai_khoan: tk, xac_minh: xm })
+            }).then(r => r.json()).then(kq => {
+                document.getElementById('btn-qmk').disabled = false;
+                if(kq.thanh_cong) {
+                    if(vt === 'sinhvien') {
+                        // Email was sent
+                        hienThongBao('thongbao-quenmk', kq.thong_bao, true);
+                        document.getElementById('btn-qmk').textContent = "Đã gửi Email";
+                    } else {
+                        // Staff verfied, show new password field
+                        hienThongBao('thongbao-quenmk', kq.thong_bao, true);
+                        document.getElementById('vung-qmk-mkmoi').style.display = 'block';
+                        document.getElementById('btn-qmk').textContent = "Lưu Mật Khẩu Mới";
+                        // Change submit handler for step 2
+                        document.getElementById('form-quen-mk').onsubmit = function(e2) {
+                            e2.preventDefault();
+                            var matkhau_moi = document.getElementById('qmk-matkhau-moi').value;
+                            if(!matkhau_moi) return alert("Vui lòng nhập mật khẩu mới");
+                            fetch('/api/quen-mat-khau/dat-lai', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ vai_tro: vt, tai_khoan: tk, xac_minh: xm, mat_khau: matkhau_moi })
+                            }).then(r => r.json()).then(kq2 => {
+                                hienThongBao('thongbao-quenmk', kq2.thong_bao, kq2.thanh_cong);
+                                if(kq2.thanh_cong) {
+                                    setTimeout(() => dongModal('modal-quen-mk'), 2000);
+                                }
+                            }).catch(err => {
+                                hienThongBao('thongbao-quenmk', 'Lỗi Server DatLai: Code ' + err, false);
+                            });
+                        };
+                    }
+                } else {
+                    hienThongBao('thongbao-quenmk', kq.thong_bao, false);
+                    document.getElementById('btn-qmk').textContent = "Thử lại";
+                }
+            }).catch(err => {
+                hienThongBao('thongbao-quenmk', 'Lỗi ngoại lệ mạng / Code Server hỏng. ' + err, false);
+                document.getElementById('btn-qmk').disabled = false;
+                document.getElementById('btn-qmk').textContent = "Thử lại";
+            });
+        }
+
+        // Hien thi thong bao
+        function hienThongBao(idPhanTu, noiDung, laThanCong) {
+            var phanTu = document.getElementById(idPhanTu);
+            phanTu.textContent = noiDung;
+            phanTu.className = 'thong-bao ' + (laThanCong ? 'thanh-cong' : 'that-bai');
+            setTimeout(function () { phanTu.className = 'thong-bao'; }, 5000);
+        }
+
+        // Xem truoc anh dang ky
+        function xemTruocAnhDangKy(input) {
+            var img = document.getElementById('xem-truoc-dk');
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Xu ly dang nhap
+        function xuLyDangNhap(suKien) {
+            suKien.preventDefault();
+            var taiKhoan = document.getElementById('dn-taikhoan').value;
+            var matKhau = document.getElementById('dn-matkhau').value;
+
+            fetch('/api/dang-nhap', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tai_khoan: taiKhoan, mat_khau: matKhau })
+            })
+                .then(function (phanHoi) { return phanHoi.json(); })
+                .then(function (ketQua) {
+                    if (ketQua.thanh_cong) {
+                        hienThongBao('thongbao-dangnhap', ketQua.thong_bao, true);
+                        setTimeout(function () { window.location.href = ketQua.duong_dan; }, 500);
+                    } else {
+                        hienThongBao('thongbao-dangnhap', ketQua.thong_bao, false);
+                    }
+                })
+                .catch(function () {
+                    hienThongBao('thongbao-dangnhap', 'Lỗi kết nối server', false);
+                });
+        }
+
+        // Tai danh sach toa nha
+        function taiDanhSachToaNha() {
+            fetch('/api/danh-sach-toanha')
+                .then(function (phanHoi) { return phanHoi.json(); })
+                .then(function (ketQua) {
+                    if (ketQua.thanh_cong) {
+                        var selectToaNha = document.getElementById('dk-toanha');
+                        selectToaNha.innerHTML = '<option value="">-- Chọn tòa nhà --</option>';
+                        ketQua.du_lieu.forEach(function (toaNha) {
+                            var option = document.createElement('option');
+                            option.value = toaNha.ma_toanha;
+                            option.textContent = toaNha.ten_toanha;
+                            selectToaNha.appendChild(option);
+                        });
+                    }
+                });
+        }
+
+        // Tai danh sach phong theo toa nha
+        function taiDanhSachPhong(maToaNha, idSelect) {
+            if (!maToaNha) return;
+            fetch('/api/danh-sach-phong/' + maToaNha)
+                .then(function (phanHoi) { return phanHoi.json(); })
+                .then(function (ketQua) {
+                    if (ketQua.thanh_cong) {
+                        var selectPhong = document.getElementById(idSelect);
+                        selectPhong.innerHTML = '<option value="">-- Chọn phòng --</option>';
+                        ketQua.du_lieu.forEach(function (phong) {
+                            var option = document.createElement('option');
+                            option.value = phong.ma_phong;
+                            option.textContent = phong.ten_phong;
+                            selectPhong.appendChild(option);
+                        });
+                    }
+                });
+        }
+
+        // Xu ly dang ky
+        function xuLyDangKy(suKien) {
+            suKien.preventDefault();
+            
+            var formData = new FormData();
+            formData.append('tai_khoan', document.getElementById('dk-mssv').value);
+            formData.append('mat_khau', document.getElementById('dk-matkhau').value);
+            formData.append('ho_ten', document.getElementById('dk-hoten').value);
+            formData.append('email', document.getElementById('dk-email').value);
+            formData.append('lop', document.getElementById('dk-lop').value);
+            formData.append('khoa', document.getElementById('dk-khoa').value);
+            formData.append('ma_phong', document.getElementById('dk-phong').value);
+            
+            var fileAnh = document.getElementById('dk-anhthesv').files[0];
+            if (fileAnh) {
+                formData.append('anh_the_sv', fileAnh);
+            }
+
+            fetch('/api/dang-ky', {
+                method: 'POST',
+                body: formData
+            })
+                .then(function (phanHoi) { return phanHoi.json(); })
+                .then(function (ketQua) {
+                    hienThongBao('thongbao-dangky', ketQua.thong_bao, ketQua.thanh_cong);
+                    if (ketQua.thanh_cong) {
+                        document.querySelector('#form-dangky form').reset();
+                    }
+                })
+                .catch(function () {
+                    hienThongBao('thongbao-dangky', 'Lỗi kết nối server', false);
+                });
+        }
+    </script>
+</body>
+
+</html>

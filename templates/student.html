@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sinh Viên - Hệ Thống Báo Hỏng KTX</title>
+    <link rel="icon" href="/static/logo.png" type="image/png">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <div class="bo-cuc">
+        <!-- Thanh ben -->
+        <aside class="thanh-ben">
+            <div class="thuong-hieu">
+                <div class="bieu-tuong-nho" style="background: transparent; box-shadow: none;">
+                    <img src="/static/logo.png" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+                <div>
+                    <div class="ten">KTX Báo Hỏng</div>
+                    <div class="mo-ta">Sinh viên</div>
+                </div>
+            </div>
+            <div class="thong-tin-nguoidung">
+                <div class="ten-nguoidung" id="ten-nguoidung">---</div>
+                <div class="vai-tro-nguoidung">Sinh viên</div>
+            </div>
+            <nav class="menu-ben">
+                <button class="muc-menu dang-chon" onclick="chuyenMuc('thong-tin')">
+                    <span class="bieu-tuong-menu">👤</span> <span>Thông tin cá nhân</span>
+                </button>
+                <button class="muc-menu" onclick="chuyenMuc('thanh-vien')">
+                    <span class="bieu-tuong-menu">👥</span> <span>Thành viên phòng</span>
+                </button>
+                <button class="muc-menu" onclick="chuyenMuc('bao-hong')">
+                    <span class="bieu-tuong-menu">📝</span> <span>Tạo phiếu báo hỏng</span>
+                </button>
+                <button class="muc-menu" onclick="chuyenMuc('lich-su')">
+                    <span class="bieu-tuong-menu">📋</span> <span>Lịch sử báo hỏng</span>
+                    <span id="badge-sua-chua" class="badge-thong-bao"></span>
+                </button>
+                <button class="muc-menu" onclick="hienModalDoiMK()">
+                    <span class="bieu-tuong-menu">🔑</span> <span>Đổi mật khẩu</span>
+                </button>
+            </nav>
+            <button class="nut-dang-xuat" onclick="dangXuat()">🚪 Đăng xuất</button>
+        </aside>
+
+        <!-- Noi dung chinh -->
+        <main class="noi-dung-chinh">
+            <!-- Tab thong tin ca nhan -->
+            <div id="tab-thong-tin" class="noi-dung-tab hien-thi">
+                <div class="tieu-de-trang">
+                    <h2>👤 Thông Tin Cá Nhân</h2>
+                    <p>Xem và cập nhật thông tin sinh viên</p>
+                </div>
+                <div class="the-thong-tin">
+                    <div class="tieu-de-the">
+                        <span class="bieu-tuong-the">📋</span> Thông tin chi tiết
+                    </div>
+                    <div class="luoi-thong-tin" id="luoi-thong-tin-sv">
+                        <div class="dang-tai"></div>
+                    </div>
+                </div>
+                <div class="the-thong-tin">
+                    <div class="tieu-de-the">
+                        <span class="bieu-tuong-the">✏️</span> Cập nhật thông tin
+                    </div>
+                    <form onsubmit="capNhatThongTin(event)" enctype="multipart/form-data">
+                        <div class="nhom-truong">
+                            <label>Ảnh đại diện (Tùy chọn)</label>
+                            <input type="file" id="cn-anhdaidien" accept="image/*" class="input-anh"
+                                onchange="document.getElementById('cn-preview').src = window.URL.createObjectURL(this.files[0]); document.getElementById('cn-preview').style.display = 'block';">
+                            <img id="cn-preview"
+                                style="max-height:100px; display:none; margin-top:10px; border-radius:8px;">
+                        </div>
+                        <div class="hang-truong">
+                            <div class="nhom-truong">
+                                <label>Họ và tên</label>
+                                <input type="text" id="cn-hoten" required>
+                            </div>
+                            <div class="nhom-truong">
+                                <label>Lớp</label>
+                                <input type="text" id="cn-lop" required>
+                            </div>
+                        </div>
+                        <div class="hang-truong">
+                            <div class="nhom-truong">
+                                <label>Khoa</label>
+                                <input type="text" id="cn-khoa" required>
+                            </div>
+                            <div class="nhom-truong">
+                                <label>Số điện thoại</label>
+                                <input type="tel" id="cn-sdt" required>
+                            </div>
+                        </div>
+                        <div class="hang-truong">
+                            <div class="nhom-truong" style="width: 100%;">
+                                <label>Phòng</label>
+                                <select id="cn-phong">
+                                    <option value="">-- Chọn phòng --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="nut-chinh" style="width:auto; padding: 12px 32px;">Lưu thay
+                            đổi</button>
+                        <div id="thongbao-capnhat" class="thong-bao"></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tab thanh vien phong -->
+            <div id="tab-thanh-vien" class="noi-dung-tab">
+                <div class="tieu-de-trang">
+                    <h2>👥 Thành Viên Phòng</h2>
+                    <p>Danh sách sinh viên ở cùng phòng</p>
+                </div>
+                <div id="ds-thanh-vien-phong" class="ds-thanh-vien">
+                    <div class="dang-tai"></div>
+                </div>
+            </div>
+
+            <!-- Tab tao phieu bao hong -->
+            <div id="tab-bao-hong" class="noi-dung-tab">
+                <div class="tieu-de-trang">
+                    <h2>📝 Tạo Phiếu Báo Hỏng</h2>
+                    <p>Báo cáo sự cố trong phòng ký túc xá</p>
+                </div>
+                <div class="the-thong-tin">
+                    <form id="form-bao-hong" onsubmit="taoPhieuBaoHong(event)">
+                        <div class="nhom-truong">
+                            <label>Tên lỗi hỏng *</label>
+                            <input type="text" id="bh-tenloi" placeholder="VD: Hỏng bóng đèn, Vỡ gương, Chập điện..."
+                                required>
+                        </div>
+                        <div class="nhom-truong">
+                            <label>Mô tả chi tiết</label>
+                            <textarea id="bh-mota" rows="4"
+                                placeholder="Mô tả chi tiết tình trạng hỏng hóc..."></textarea>
+                        </div>
+                        <div class="nhom-truong">
+                            <label>Mức độ khẩn cấp *</label>
+                            <select id="bh-mucdo" required>
+                                <option value="thuong">🟡 Thường (Hỏng bóng đèn, vỡ gương...)</option>
+                                <option value="khancap">🔴 Khẩn cấp (Cháy phòng, chập điện, vỡ ống nước...)</option>
+                            </select>
+                        </div>
+                        <div class="nhom-truong">
+                            <label>Ảnh minh chứng</label>
+                            <div class="khung-upload">
+                                <input type="file" id="bh-anh" accept="image/*"
+                                    onchange="xemTruocAnh(this, 'xem-truoc-bh')">
+                                <div class="bieu-tuong-upload">📷</div>
+                                <div class="text-upload">Nhấp hoặc kéo thả ảnh vào đây</div>
+                            </div>
+                            <img id="xem-truoc-bh" class="anh-minh-chung" style="display:none;">
+                        </div>
+                        <div class="nhom-truong">
+                            <label>SĐT liên hệ *</label>
+                            <input type="tel" id="bh-sdt" placeholder="Nhập số điện thoại để KTV liên hệ xác nhận"
+                                required>
+                        </div>
+                        <button type="submit" class="nut-chinh" style="width:auto; padding: 12px 32px;">Gửi Phiếu Báo
+                            Hỏng</button>
+                        <div id="thongbao-baohong" class="thong-bao"></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tab lich su bao hong -->
+            <div id="tab-lich-su" class="noi-dung-tab">
+                <div class="tieu-de-trang">
+                    <h2>📋 Lịch Sử Báo Hỏng</h2>
+                    <p>Theo dõi trạng thái xử lý các phiếu báo hỏng</p>
+                </div>
+                <div id="ds-lich-su" class="the-thong-tin">
+                    <div class="dang-tai"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal chi tiet thanh vien -->
+    <div id="modal-thanh-vien" class="modal-overlay" onclick="if(event.target===this)dongModal('modal-thanh-vien')">
+        <div class="modal-noi-dung">
+            <div class="modal-tieu-de">
+                <h3>Thông Tin Thành Viên</h3>
+                <button class="nut-dong" onclick="dongModal('modal-thanh-vien')">✕</button>
+            </div>
+            <div id="chi-tiet-thanh-vien" class="luoi-thong-tin"></div>
+        </div>
+    </div>
+
+    <script>
+        // Bien toan cuc
+        var thongTinSV = null;
+
+        // Khoi tao
+        window.onload = function () {
+            taiThongTin();
+            taiSoLuongThongBao();
+            setInterval(taiSoLuongThongBao, 5000);
+        };
+
+        function taiSoLuongThongBao() {
+            fetch('/api/thong-bao/dem-so-luong')
+                .then(r => r.json())
+                .then(kq => {
+                    if (kq.thanh_cong && kq.du_lieu) {
+                        var badge = document.getElementById('badge-sua-chua');
+                        if (badge) {
+                            if (kq.du_lieu.phieu_dang_xu_ly > 0) {
+                                badge.textContent = kq.du_lieu.phieu_dang_xu_ly;
+                                badge.classList.add('hien-thi');
+                            } else {
+                                badge.classList.remove('hien-thi');
+                            }
+                        }
+                    }
+                });
+        }
+
+        // Chuyen muc menu
+        function chuyenMuc(tenMuc) {
+            document.querySelectorAll('.muc-menu').forEach(function (m) { m.classList.remove('dang-chon'); });
+            document.querySelectorAll('.noi-dung-tab').forEach(function (t) { t.classList.remove('hien-thi'); });
+
+            event.currentTarget.classList.add('dang-chon');
+            document.getElementById('tab-' + tenMuc).classList.add('hien-thi');
+
+            if (tenMuc === 'thanh-vien') taiThanhVienPhong();
+            if (tenMuc === 'lich-su') taiLichSuBaoHong();
+        }
+
+        // Tai thong tin sinh vien
+        function taiThongTin() {
+            fetch('/api/sinhvien/thong-tin')
+                .then(function (r) { return r.json(); })
+                .then(function (kq) {
+                    if (kq.thanh_cong && kq.du_lieu) {
+                        thongTinSV = kq.du_lieu;
+                        document.getElementById('ten-nguoidung').textContent = kq.du_lieu.ho_ten;
+
+                        var luoi = document.getElementById('luoi-thong-tin-sv');
+                        var anhHtml = '';
+                        if (kq.du_lieu.anh_dai_dien) {
+                            var anhUrl = kq.du_lieu.anh_dai_dien.startsWith('http') ? kq.du_lieu.anh_dai_dien : '/uploads/' + kq.du_lieu.anh_dai_dien;
+                            anhHtml = '<div style="text-align:center; margin-bottom: 20px;"><img src="' + anhUrl + '" style="max-width:150px; height:150px; border-radius:50%; object-fit:cover; border:2px solid #ccc;"></div>';
+                        }
+                        luoi.innerHTML = anhHtml +
+                            '<div class="muc-thong-tin"><div class="nhan">MSSV</div><div class="gia-tri">' + kq.du_lieu.tai_khoan + '</div></div>' +
+                            '<div class="muc-thong-tin"><div class="nhan">Họ và tên</div><div class="gia-tri">' + kq.du_lieu.ho_ten + '</div></div>' +
+                            '<div class="muc-thong-tin"><div class="nhan">Lớp</div><div class="gia-tri">' + (kq.du_lieu.lop || '---') + '</div></div>' +
+                            '<div class="muc-thong-tin"><div class="nhan">Khoa</div><div class="gia-tri">' + (kq.du_lieu.khoa || '---') + '</div></div>' +
+                            '<div class="muc-thong-tin"><div class="nhan">SĐT</div><div class="gia-tri">' + (kq.du_lieu.so_dien_thoai || '---') + '</div></div>' +
+                            '<div class="muc-thong-tin"><div class="nhan">Phòng</div><div class="gia-tri">' + (kq.du_lieu.ten_phong || '---') + '</div></div>' +
+                            '<div class="muc-thong-tin"><div class="nhan">Tòa nhà</div><div class="gia-tri">' + (kq.du_lieu.ten_toanha || '---') + '</div></div>';
+
+                        // Dien du lieu vao form cap nhat
+                        document.getElementById('cn-hoten').value = kq.du_lieu.ho_ten || '';
+                        document.getElementById('cn-lop').value = kq.du_lieu.lop || '';
+                        document.getElementById('cn-khoa').value = kq.du_lieu.khoa || '';
+                        document.getElementById('cn-sdt').value = kq.du_lieu.so_dien_thoai || '';
+
+                        // Tai danh sach phong
+                        taiTatCaPhong(kq.du_lieu.ma_phong);
+                    }
+                });
+        }
+
+        // Tai tat ca phong cho select
+        function taiTatCaPhong(maPhongHienTai) {
+            fetch('/api/danh-sach-toanha')
+                .then(function (r) { return r.json(); })
+                .then(function (kq) {
+                    if (kq.thanh_cong) {
+                        kq.du_lieu.forEach(function (toaNha) {
+                            fetch('/api/danh-sach-phong/' + toaNha.ma_toanha)
+                                .then(function (r) { return r.json(); })
+                                .then(function (kqPhong) {
+                                    if (kqPhong.thanh_cong) {
+                                        var select = document.getElementById('cn-phong');
+                                        kqPhong.du_lieu.forEach(function (phong) {
+                                            var opt = document.createElement('option');
+                                            opt.value = phong.ma_phong;
+                                            opt.textContent = toaNha.ten_toanha + ' - ' + phong.ten_phong;
+                                            if (phong.ma_phong === maPhongHienTai) opt.selected = true;
+                                            select.appendChild(opt);
+                                        });
+                                    }
+                                });
+                        });
+                    }
+                });
+        }
+
+        // Cap nhat thong tin
+        function capNhatThongTin(suKien) {
+            suKien.preventDefault();
+            var formData = new FormData();
+            formData.append('ho_ten', document.getElementById('cn-hoten').value);
+            formData.append('lop', document.getElementById('cn-lop').value);
+            formData.append('khoa', document.getElementById('cn-khoa').value);
+            formData.append('so_dien_thoai', document.getElementById('cn-sdt').value);
+
+            var phongVal = document.getElementById('cn-phong').value;
+            if (phongVal) formData.append('ma_phong', phongVal);
+            else formData.append('ma_phong', '');
+
+            var fileAnh = document.getElementById('cn-anhdaidien').files[0];
+            if (fileAnh) formData.append('anh_dai_dien', fileAnh);
+
+            fetch('/api/sinhvien/cap-nhat', {
+                method: 'PUT',
+                body: formData
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (kq) {
+                    hienThongBao('thongbao-capnhat', kq.thong_bao, kq.thanh_cong);
+                    if (kq.thanh_cong) taiThongTin();
+                });
+        }
+
+        // Tai thanh vien phong
+        function taiThanhVienPhong() {
+            var container = document.getElementById('ds-thanh-vien-phong');
+            container.innerHTML = '<div class="dang-tai"></div>';
+
+            fetch('/api/sinhvien/thanh-vien-phong')
+                .then(function (r) { return r.json(); })
+                .then(function (kq) {
+                    if (kq.thanh_cong) {
+                        if (kq.du_lieu.length === 0) {
+                            container.innerHTML = '<div class="khong-co-du-lieu"><div class="bieu-tuong-rong">👤</div><p>Chưa có thành viên nào trong phòng</p></div>';
+                            return;
+                        }
+                        var html = '';
+                        kq.du_lieu.forEach(function (tv) {
+                            var anhHtml = '👤';
+                            if (tv.anh_dai_dien) {
+                                var anhUrl = tv.anh_dai_dien.startsWith('http') ? tv.anh_dai_dien : '/uploads/' + tv.anh_dai_dien;
+                                anhHtml = '<img src="' + anhUrl + '" style="width:30px;height:30px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:5px;">';
+                            }
+                            html += '<div class="the-thanh-vien" onclick="xemChiTietTV(' + JSON.stringify(tv).replace(/"/g, '&quot;') + ')">' +
+                                '<div class="ten-tv">' + anhHtml + ' ' + tv.ho_ten + '</div>' +
+                                '<div class="chi-tiet-tv">MSSV: ' + tv.tai_khoan + '<br>Lớp: ' + (tv.lop || '---') + '</div>' +
+                                '</div>';
+                        });
+                        container.innerHTML = html;
+                    }
+                });
+        }
+
+        // Xem chi tiet thanh vien
+        function xemChiTietTV(thanhVien) {
+            var container = document.getElementById('chi-tiet-thanh-vien');
+            var anhHtml = '';
+            if (thanhVien.anh_dai_dien) {
+                var anhUrl = thanhVien.anh_dai_dien.startsWith('http') ? thanhVien.anh_dai_dien : '/uploads/' + thanhVien.anh_dai_dien;
+                anhHtml = '<div style="text-align:center; margin-bottom: 20px;"><img src="' + anhUrl + '" style="max-width:150px; height:150px; border-radius:50%; object-fit:cover; border:2px solid #ccc;"></div>';
+            }
+            container.innerHTML = anhHtml +
+                '<div class="muc-thong-tin"><div class="nhan">MSSV</div><div class="gia-tri">' + thanhVien.tai_khoan + '</div></div>' +
+                '<div class="muc-thong-tin"><div class="nhan">Họ và tên</div><div class="gia-tri">' + thanhVien.ho_ten + '</div></div>' +
+                '<div class="muc-thong-tin"><div class="nhan">Lớp</div><div class="gia-tri">' + (thanhVien.lop || '---') + '</div></div>' +
+                '<div class="muc-thong-tin"><div class="nhan">Khoa</div><div class="gia-tri">' + (thanhVien.khoa || '---') + '</div></div>' +
+                '<div class="muc-thong-tin"><div class="nhan">SĐT</div><div class="gia-tri">' + (thanhVien.so_dien_thoai || '---') + '</div></div>';
+            document.getElementById('modal-thanh-vien').classList.add('hien-thi');
+        }
+
+        // Tao phieu bao hong
+        function taoPhieuBaoHong(suKien) {
+            suKien.preventDefault();
+            var formData = new FormData();
+            formData.append('ten_loi', document.getElementById('bh-tenloi').value);
+            formData.append('mo_ta', document.getElementById('bh-mota').value);
+            formData.append('muc_do', document.getElementById('bh-mucdo').value);
+            formData.append('sdt_lien_he', document.getElementById('bh-sdt').value);
+
+            var fileAnh = document.getElementById('bh-anh').files[0];
+            if (fileAnh) {
+                formData.append('anh_minh_chung', fileAnh);
+            }
+
+            fetch('/api/sinhvien/tao-phieu', {
+                method: 'POST',
+                body: formData
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (kq) {
+                    hienThongBao('thongbao-baohong', kq.thong_bao, kq.thanh_cong);
+                    if (kq.thanh_cong) {
+                        document.getElementById('form-bao-hong').reset();
+                        document.getElementById('xem-truoc-bh').style.display = 'none';
+                    }
+                });
+        }
+
+        // Tai lich su bao hong
+        function taiLichSuBaoHong() {
+            var container = document.getElementById('ds-lich-su');
+            container.innerHTML = '<div class="dang-tai"></div>';
+
+            fetch('/api/sinhvien/lich-su')
+                .then(function (r) { return r.json(); })
+                .then(function (kq) {
+                    if (kq.thanh_cong) {
+                        if (kq.du_lieu.length === 0) {
+                            container.innerHTML = '<div class="khong-co-du-lieu"><div class="bieu-tuong-rong">📋</div><p>Chưa có phiếu báo hỏng nào</p></div>';
+                            return;
+                        }
+                        var html = '';
+                        kq.du_lieu.forEach(function (phieu) {
+                            var p = formatPhieu(phieu);
+                            html += '<div class="the-phieu ' + p.lopMau + '">' +
+                                '<div class="tieu-de-phieu">' +
+                                '<span>' + p.ten_loi + '</span>' + p.trangThaiHTML +
+                                '</div>' +
+                                '<div class="noi-dung-phieu">' +
+                                'Phòng: ' + p.ten_phong + ' - ' + p.ten_toanha + '<br>' +
+                                'Người báo: Bạn' + p.sdt_nguoi_bao_format + p.moTaText + '<br>' +
+                                'Mức độ: ' + (p.muc_do === 'khancap' ? '🔴 Khẩn cấp' : '🟡 Thường') + p.thongTinKTV + p.ghiChu + p.ly_do_html +
+                                '</div>' +
+                                (p.anh_minh_chung ? '<div style="margin-top:8px"><strong>Ảnh báo hỏng:</strong><br><img src="' + (p.anh_minh_chung.startsWith('http') ? '' : '/uploads/') + p.anh_minh_chung + '" class="anh-minh-chung" style="max-height:150px; margin-top:4px;" onerror="this.outerHTML=\'<div style=\\\'margin-top:4px;color:#9ca3af;font-size:12px;font-style:italic;\\\'>[Ảnh báo hỏng không tồn tại trên Server này]</div>\'"></div>' : '') +
+                                (p.anh_hoan_thanh ? '<div style="margin-top:8px"><strong>Ảnh KTV sửa xong:</strong><br><img src="' + (p.anh_hoan_thanh.startsWith('http') ? '' : '/uploads/') + p.anh_hoan_thanh + '" class="anh-minh-chung" style="max-height:150px;border: 2px solid #10b981;margin-top:4px;" onerror="this.outerHTML=\'<div style=\\\'margin-top:4px;color:#9ca3af;font-size:12px;font-style:italic;\\\'>[Ảnh không tồn tại trên Server này]</div>\'"></div>' : '') +
+                                '<div class="thoi-gian-phieu" style="margin-top:10px;">🕐 Báo lúc: ' + p.ngay_tao + (p.thoi_gian_sua_xong ? ' <br> 🕐 Hoàn thành sửa: ' + p.thoi_gian_sua_xong : '') + '</div>' +
+                                '</div>';
+                        });
+                        container.innerHTML = html;
+                    }
+                });
+        }
+
+        // Cac ham tien ich
+        function layTenTrangThai(trangThai) {
+            var ten = {
+                'cho_xu_ly': 'Chờ xử lý',
+                'da_phan_cong': 'Đã phân công',
+                'dang_xu_ly': 'Đang sửa chữa',
+                'da_hoan_thanh': 'Chờ QL KTX duyệt',
+                'da_xac_nhan': 'Đã hoàn thành',
+                'khong_duyet': 'Không duyệt',
+                'tu_choi_sua': 'Từ chối sửa'
+            };
+            return ten[trangThai] || trangThai;
+        }
+
+        function layLopTrangThai(trangThai) {
+            var lop = {
+                'cho_xu_ly': 'vang',
+                'da_phan_cong': 'xanh-duong',
+                'dang_xu_ly': 'xanh-duong',
+                'da_hoan_thanh': 'xanh',
+                'da_xac_nhan': 'xanh',
+                'khong_duyet': 'do',
+                'tu_choi_sua': 'do'
+            };
+            return lop[trangThai] || 'vang';
+        }
+
+        function formatPhieu(phieu) {
+            var p = Object.assign({}, phieu);
+            var sdtNguoiBao = p.sdt_nguoi_bao || '';
+            if (p.mo_ta && p.mo_ta.indexOf('[SĐT Liên Hệ: ') !== -1) {
+                var parts = p.mo_ta.split('\n');
+                for (var i = 0; i < parts.length; i++) {
+                    if (parts[i].startsWith('[SĐT Liên Hệ: ')) {
+                        sdtNguoiBao = parts[i].replace('[SĐT Liên Hệ: ', '').replace(']', '').trim();
+                        parts.splice(i, 1);
+                        break;
+                    }
+                }
+                p.mo_ta = parts.join('\n').trim();
+            }
+            p.ly_do_tu_choi = '';
+            if (p.mo_ta && p.mo_ta.indexOf('\n[Lý do từ chối: ') !== -1) {
+                var idx = p.mo_ta.indexOf('\n[Lý do từ chối: ');
+                p.ly_do_tu_choi = p.mo_ta.substring(idx).replace('\n[Lý do từ chối: ', '').replace(']', '').trim();
+                p.mo_ta = p.mo_ta.substring(0, idx).trim();
+            } else if (p.mo_ta && p.mo_ta.indexOf('[Lý do từ chối: ') !== -1) {
+                var idx = p.mo_ta.indexOf('[Lý do từ chối: ');
+                p.ly_do_tu_choi = p.mo_ta.substring(idx).replace('[Lý do từ chối: ', '').replace(']', '').trim();
+                p.mo_ta = p.mo_ta.substring(0, idx).trim();
+            }
+            p.sdt_nguoi_bao_format = sdtNguoiBao ? ' - SĐT: ' + sdtNguoiBao : '';
+            p.ly_do_html = p.ly_do_tu_choi ? '<br><strong style="color:var(--mau-do);">Lý do từ chối:</strong> ' + p.ly_do_tu_choi : '';
+            p.thongTinKTV = p.ten_ky_thuat ? '<br>KTV thực hiện: ' + p.ten_ky_thuat + (p.sdt_ky_thuat ? ' - SĐT: ' + p.sdt_ky_thuat : '') : '';
+            p.moTaText = p.mo_ta ? '<br>Mô tả:<br>' + p.mo_ta.replace(/\n/g, '<br>') : '';
+            p.ghiChu = p.ghi_chu ? '<br>Ghi chú của KTV:<br>' + p.ghi_chu.replace(/\n/g, '<br>') : '';
+            p.lopMau = p.muc_do === 'khancap' ? 'phieu-do' : 'phieu-vang';
+            p.trangThaiHTML = '<span class="nhan-trang-thai ' + layLopTrangThai(p.trang_thai) + '">' + layTenTrangThai(p.trang_thai) + '</span>';
+            return p;
+        }
+
+        function xemTruocAnh(input, idAnh) {
+            var anh = document.getElementById(idAnh);
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    anh.src = e.target.result;
+                    anh.style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function hienThongBao(idPhanTu, noiDung, laThanCong) {
+            var phanTu = document.getElementById(idPhanTu);
+            phanTu.textContent = noiDung;
+            phanTu.className = 'thong-bao ' + (laThanCong ? 'thanh-cong' : 'that-bai');
+            setTimeout(function () { phanTu.className = 'thong-bao'; }, 5000);
+        }
+
+        function dongModal(idModal) {
+            document.getElementById(idModal).classList.remove('hien-thi');
+        }
+
+        function hienModalDoiMK() {
+            document.getElementById('modal-doimk').classList.add('hien-thi');
+            document.getElementById('form-doimk').reset();
+            document.getElementById('thongbao-doimk').className = 'thong-bao';
+        }
+
+        function xuLyDoiMK(e) {
+            e.preventDefault();
+            var mkCu = document.getElementById('dmk-cu').value;
+            var mkMoi = document.getElementById('dmk-moi').value;
+            var mkXacNhan = document.getElementById('dmk-xacnhan').value;
+            
+            if(mkMoi !== mkXacNhan) {
+                hienThongBao('thongbao-doimk', 'Hai mật khẩu mới không khớp!', false);
+                return;
+            }
+            if(mkMoi.length < 6) {
+                hienThongBao('thongbao-doimk', 'Mật khẩu phải từ 6 ký tự', false);
+                return;
+            }
+            
+            var btn = document.getElementById('btn-doimk');
+            btn.disabled = true;
+            btn.textContent = "Đang lưu...";
+            
+            fetch('/api/doi-mat-khau', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({mat_khau_cu: mkCu, mat_khau_moi: mkMoi})
+            }).then(r => r.json()).then(kq => {
+                btn.disabled = false;
+                btn.textContent = "Đổi Mật Khẩu";
+                hienThongBao('thongbao-doimk', kq.thong_bao, kq.thanh_cong);
+                if(kq.thanh_cong) {
+                    setTimeout(() => dongModal('modal-doimk'), 1500);
+                }
+            });
+        }
+
+        function dangXuat() {
+            fetch('/api/dang-xuat', { method: 'POST' })
+                .then(function () { window.location.href = '/'; });
+        }
+    </script>
+    
+    <!-- Modal Doi Mat Khau -->
+    <div id="modal-doimk" class="modal-overlay" onclick="if(event.target===this)dongModal('modal-doimk')">
+        <div class="modal-noi-dung" style="max-width: 400px; background: #fff; padding: 24px; border-radius: var(--bo-tron-lon); margin: 10vh auto;">
+            <div class="modal-tieu-de" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0; color: var(--mau-chu);">🔑 Đổi Mật Khẩu</h3>
+                <button onclick="dongModal('modal-doimk')" style="background: none; border: none; font-size: 18px; cursor: pointer;">✕</button>
+            </div>
+            <form id="form-doimk" onsubmit="xuLyDoiMK(event)">
+                <div class="nhom-truong">
+                    <label>Mật khẩu hiện tại</label>
+                    <input type="password" id="dmk-cu" required>
+                </div>
+                <div class="nhom-truong">
+                    <label>Mật khẩu mới</label>
+                    <input type="password" id="dmk-moi" required>
+                </div>
+                <div class="nhom-truong">
+                    <label>Xác nhận mật khẩu mới</label>
+                    <input type="password" id="dmk-xacnhan" required>
+                </div>
+                <button type="submit" id="btn-doimk" class="nut-chinh">Đổi Mật Khẩu</button>
+                <div id="thongbao-doimk" class="thong-bao"></div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

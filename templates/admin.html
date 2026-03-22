@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Hệ Thống Báo Hỏng KTX</title>
+    <link rel="icon" href="/static/logo.png" type="image/png">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <div class="bo-cuc">
+        <!-- Thanh ben -->
+        <aside class="thanh-ben">
+            <div class="thuong-hieu">
+                <div class="bieu-tuong-nho" style="background: transparent; box-shadow: none;">
+                    <img src="/static/logo.png" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+                <div>
+                    <div class="ten">KTX Báo Hỏng</div>
+                    <div class="mo-ta">Quản trị viên</div>
+                </div>
+            </div>
+            <div class="thong-tin-nguoidung">
+                <div class="ten-nguoidung">Admin</div>
+                <div class="vai-tro-nguoidung">Quản Trị Viên</div>
+            </div>
+            <nav class="menu-ben">
+                <button class="muc-menu dang-chon" onclick="chuyenMuc('tao-tk')">
+                    <span class="bieu-tuong-menu">➕</span> <span>Tạo tài khoản</span>
+                </button>
+                <button class="muc-menu" onclick="chuyenMuc('ds-tk')">
+                    <span class="bieu-tuong-menu">👥</span> <span>Danh sách tài khoản</span>
+                </button>
+            </nav>
+            <button class="nut-dang-xuat" onclick="dangXuat()">🚪 Đăng xuất</button>
+        </aside>
+
+        <!-- Noi dung chinh -->
+        <main class="noi-dung-chinh">
+            <!-- Tao tai khoan -->
+            <div id="tab-tao-tk" class="noi-dung-tab hien-thi">
+                <div class="tieu-de-trang">
+                    <h2>➕ Tạo Tài Khoản</h2>
+                    <p>Cấp tài khoản cho Quản lý KTX và Kỹ thuật viên</p>
+                </div>
+                <div class="the-thong-tin">
+                    <div class="tieu-de-the"><span class="bieu-tuong-the">📝</span> Thông tin tài khoản mới</div>
+                    <form onsubmit="taoTaiKhoan(event)">
+                        <div class="hang-truong">
+                            <div class="nhom-truong">
+                                <label>Tài khoản *</label>
+                                <input type="text" id="tk-taikhoan" placeholder="Nhập tên tài khoản" required>
+                            </div>
+                            <div class="nhom-truong">
+                                <label>Mật khẩu *</label>
+                                <input type="password" id="tk-matkhau" placeholder="Nhập mật khẩu" required>
+                            </div>
+                        </div>
+                        <div class="hang-truong">
+                            <div class="nhom-truong">
+                                <label>Họ và tên *</label>
+                                <input type="text" id="tk-hoten" placeholder="Nhập họ và tên" required>
+                            </div>
+                            <div class="nhom-truong">
+                                <label>Số điện thoại</label>
+                                <input type="text" id="tk-sdt" placeholder="Nhập SĐT">
+                            </div>
+                        </div>
+                        <div class="hang-truong">
+                            <div class="nhom-truong">
+                                <label>Vai trò *</label>
+                                <select id="tk-vaitro" onchange="thayDoiVaiTro()" required>
+                                    <option value="">-- Chọn vai trò --</option>
+                                    <option value="quanly">Quản lý KTX</option>
+                                    <option value="kythuat">Kỹ thuật viên</option>
+                                </select>
+                            </div>
+                            <div class="nhom-truong" id="nhom-toanha" style="display:none;">
+                                <label>Tòa nhà quản lý</label>
+                                <select id="tk-toanha">
+                                    <option value="">-- Chọn tòa --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="nut-chinh" style="width:auto; padding:12px 32px;">Tạo Tài
+                            Khoản</button>
+                        <div id="thongbao-taoTK" class="thong-bao"></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Danh sach tai khoan -->
+            <div id="tab-ds-tk" class="noi-dung-tab">
+                <div class="tieu-de-trang">
+                    <h2>👥 Danh Sách Tài Khoản</h2>
+                    <p>Tất cả tài khoản trong hệ thống</p>
+                </div>
+                <div class="thanh-loc">
+                    <select id="loc-vaitro" onchange="taiDsTaiKhoan()">
+                        <option value="">Tất cả vai trò</option>
+                        <option value="quanly">Quản lý KTX</option>
+                        <option value="kythuat">Kỹ thuật viên</option>
+                        <option value="sinhvien">Sinh viên</option>
+                    </select>
+                </div>
+                <div class="the-thong-tin">
+                    <div id="ds-tai-khoan">
+                        <div class="dang-tai"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        window.onload = function () {
+            taiDsToaNha();
+        };
+
+        function chuyenMuc(tenMuc) {
+            document.querySelectorAll('.muc-menu').forEach(function (m) { m.classList.remove('dang-chon'); });
+            document.querySelectorAll('.noi-dung-tab').forEach(function (t) { t.classList.remove('hien-thi'); });
+            event.currentTarget.classList.add('dang-chon');
+            document.getElementById('tab-' + tenMuc).classList.add('hien-thi');
+            if (tenMuc === 'ds-tk') taiDsTaiKhoan();
+        }
+
+        function taiDsToaNha() {
+            fetch('/api/danh-sach-toanha')
+                .then(function (r) { return r.json(); })
+                .then(function (kq) {
+                    if (kq.thanh_cong) {
+                        var select = document.getElementById('tk-toanha');
+                        select.innerHTML = '<option value="">-- Chọn tòa --</option>';
+                        kq.du_lieu.forEach(function (t) {
+                            var opt = document.createElement('option');
+                            opt.value = t.ma_toanha;
+                            opt.textContent = t.ten_toanha;
+                            select.appendChild(opt);
+                        });
+                    }
+                });
+        }
+
+        function thayDoiVaiTro() {
+            var vaiTro = document.getElementById('tk-vaitro').value;
+            document.getElementById('nhom-toanha').style.display = vaiTro === 'quanly' ? 'block' : 'none';
+        }
+
+        function taoTaiKhoan(suKien) {
+            suKien.preventDefault();
+            var duLieu = {
+                tai_khoan: document.getElementById('tk-taikhoan').value,
+                mat_khau: document.getElementById('tk-matkhau').value,
+                ho_ten: document.getElementById('tk-hoten').value,
+                so_dien_thoai: document.getElementById('tk-sdt').value,
+                vai_tro: document.getElementById('tk-vaitro').value,
+                ma_toanha_quanly: parseInt(document.getElementById('tk-toanha').value) || null
+            };
+
+            if (!duLieu.vai_tro) {
+                hienThongBao('thongbao-taoTK', 'Vui lòng chọn vai trò', false);
+                return;
+            }
+
+            fetch('/api/admin/tao-tai-khoan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(duLieu)
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (kq) {
+                    hienThongBao('thongbao-taoTK', kq.thong_bao, kq.thanh_cong);
+                    if (kq.thanh_cong) {
+                        document.querySelector('#tab-tao-tk form').reset();
+                        document.getElementById('nhom-toanha').style.display = 'none';
+                    }
+                });
+        }
+
+        function taiDsTaiKhoan() {
+            var container = document.getElementById('ds-tai-khoan');
+            container.innerHTML = '<div class="dang-tai"></div>';
+            fetch('/api/admin/ds-nguoidung')
+                .then(function (r) { return r.json(); })
+                .then(function (kq) {
+                    if (kq.thanh_cong) {
+                        var loc = document.getElementById('loc-vaitro').value;
+                        var dsLoc = loc ? kq.du_lieu.filter(function (nd) { return nd.vai_tro === loc; }) : kq.du_lieu;
+
+                        if (dsLoc.length === 0) {
+                            container.innerHTML = '<div class="khong-co-du-lieu"><div class="bieu-tuong-rong">👥</div><p>Chưa có tài khoản nào</p></div>';
+                            return;
+                        }
+
+                        var html = '<div class="khung-bang"><table class="bang-du-lieu"><thead><tr>' +
+                            '<th>Tài khoản</th><th>Họ tên</th><th>Vai trò</th><th>Trạng thái</th><th>SĐT</th><th>Tòa QL</th><th>Ngày tạo</th><th>Hành động</th>' +
+                            '</tr></thead><tbody>';
+
+                        dsLoc.forEach(function (nd) {
+                            var tenVaiTro = { 'sinhvien': 'Sinh viên', 'quanly': 'Quản lý', 'kythuat': 'KTV' };
+                            var lopTT = nd.trang_thai === 'da_duyet' ? 'xanh' : (nd.trang_thai === 'cho_duyet' ? 'vang' : 'do');
+                            var tenTT = { 'da_duyet': 'Đã duyệt', 'cho_duyet': 'Chờ duyệt', 'tu_choi': 'Từ chối' };
+
+                            html += '<tr>' +
+                                '<td>' + nd.tai_khoan + '</td>' +
+                                '<td>' + nd.ho_ten + '</td>' +
+                                '<td><span class="nhan-trang-thai xanh-duong">' + (tenVaiTro[nd.vai_tro] || nd.vai_tro) + '</span></td>' +
+                                '<td><span class="nhan-trang-thai ' + lopTT + '">' + (tenTT[nd.trang_thai] || nd.trang_thai) + '</span></td>' +
+                                '<td>' + (nd.so_dien_thoai || '---') + '</td>' +
+                                '<td>' + (nd.ten_toanha || '---') + '</td>' +
+                                '<td>' + (nd.ngay_tao || '') + '</td>' +
+                                '<td><button class="nut-do" onclick="xoaTaiKhoan(' + nd.ma_nguoidung + ')">🗑️ Xóa</button></td>' +
+                                '</tr>';
+                        });
+                        html += '</tbody></table></div>';
+                        container.innerHTML = html;
+                    }
+                });
+        }
+
+        function xoaTaiKhoan(maNguoiDung) {
+            if (!confirm('Xác nhận xóa tài khoản này?')) return;
+            fetch('/api/admin/xoa-tai-khoan/' + maNguoiDung, { method: 'DELETE' })
+                .then(function (r) { return r.json(); })
+                .then(function (kq) {
+                    alert(kq.thong_bao);
+                    if (kq.thanh_cong) taiDsTaiKhoan();
+                });
+        }
+
+        function hienThongBao(id, noiDung, ok) {
+            var el = document.getElementById(id);
+            el.textContent = noiDung;
+            el.className = 'thong-bao ' + (ok ? 'thanh-cong' : 'that-bai');
+            setTimeout(function () { el.className = 'thong-bao'; }, 5000);
+        }
+
+        function dangXuat() { fetch('/api/dang-xuat', { method: 'POST' }).then(function () { window.location.href = '/'; }); }
+    </script>
+</body>
+
+</html>
