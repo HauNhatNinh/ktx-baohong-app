@@ -236,7 +236,7 @@ def dang_ky():
             '''
             threading.Thread(target=gui_email_thong_bao, args=(email, tieu_de, noi_dung), daemon=True).start()
             
-        return jsonify({'thanh_cong': True, 'thong_bao': 'Đăng ký thành công! Vui lòng chờ quản lý KTX xác minh.'})
+        return jsonify({'thanh_cong': True, 'thong_bao': 'Đã tiếp nhận phiếu đăng ký, vui lòng chờ quản lý xét duyệt tài khoản'})
     except Exception as e:
         return jsonify({'thanh_cong': False, 'thong_bao': 'Có lỗi xảy ra, thử lại sau.'})
     finally:
@@ -1448,29 +1448,37 @@ def dem_so_luong_thong_bao():
 # CAC HAM GUI EMAIL VÀ QUEN MAT KHAU
 # ============================
 def gui_email_thong_bao(email_nhan, tieu_de, noi_dung):
+    import time
     email_gui = os.environ.get('MAIL_USERNAME', '')
     mat_khau = os.environ.get('MAIL_PASSWORD', '')
-    # Tạm thời cứ thử gửi nếu có setup trong .env, nếu không có thì bỏ qua
-    if not email_gui or not mat_khau:
-        print(f"Chưa thiết lập MAIL_USERNAME và MAIL_PASSWORD trong .env. Bỏ qua gửi email tới: {email_nhan}")
-        return False
+    
+    with open('email_log.txt', 'a', encoding='utf-8') as f:
+        ghilog = lambda msg: f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
         
-    try:
-        msg = MIMEMultipart()
-        msg['From'] = email_gui
-        msg['To'] = email_nhan
-        msg['Subject'] = tieu_de
-        msg.attach(MIMEText(noi_dung, 'html', 'utf-8'))
-        
-        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=10)
-        server.starttls()
-        server.login(email_gui, mat_khau)
-        server.send_message(msg)
-        server.quit()
-        return True
-    except Exception as e:
-        print(f"LỖI GỬI EMAIL: {e}")
-        return False
+        # Tạm thời cứ thử gửi nếu có setup trong .env, nếu không có thì bỏ qua
+        if not email_gui or not mat_khau:
+            ghilog(f"BỎ QUA: Chưa thiết lập MAIL_USERNAME và MAIL_PASSWORD. Không gửi được tới: {email_nhan}")
+            return False
+            
+        try:
+            msg = MIMEMultipart()
+            msg['From'] = email_gui
+            msg['To'] = email_nhan
+            msg['Subject'] = tieu_de
+            msg.attach(MIMEText(noi_dung, 'html', 'utf-8'))
+            
+            ghilog(f"BAT DAU GUI: {email_nhan} | Tieu de: {tieu_de}")
+            server = smtplib.SMTP('smtp.gmail.com', 587, timeout=15)
+            server.set_debuglevel(0) # Để = 1 nếu muốn in ra terminal
+            server.starttls()
+            server.login(email_gui, mat_khau)
+            server.send_message(msg)
+            server.quit()
+            ghilog(f"THANH CONG: Đã gửi email tới {email_nhan}")
+            return True
+        except Exception as e:
+            ghilog(f"LOI GUI EMAIL tới {email_nhan}: {str(e)}")
+            return False
 
 @app.route('/api/quen-mat-khau', methods=['POST'])
 def quen_mat_khau():
