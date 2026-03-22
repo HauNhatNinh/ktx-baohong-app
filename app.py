@@ -1237,21 +1237,29 @@ def tiep_nhan_sua(ma_phancong):
         return jsonify({'thanh_cong': False}), 500
     try:
         con_tro = conn.cursor(dictionary=True)
-        # Lay ma phieu
-        con_tro.execute("SELECT ma_phieu FROM phancong WHERE ma_phancong = %s", (ma_phancong,))
+        # Lay thong tin phancong + muc_do phieu
+        con_tro.execute("""
+            SELECT pc.ma_phieu, pb.muc_do 
+            FROM phancong pc
+            JOIN phieubaohong pb ON pc.ma_phieu = pb.ma_phieu
+            WHERE pc.ma_phancong = %s
+        """, (ma_phancong,))
         pc = con_tro.fetchone()
         # Cap nhat phancong nay thanh da_tiep_nhan
         con_tro.execute("UPDATE phancong SET trang_thai = 'da_tiep_nhan' WHERE ma_phancong = %s", (ma_phancong,))
         if pc:
-            # Huy tat ca phancong khac cua cung phieu (KTV khac se khong thay nua)
-            con_tro.execute("""
-                DELETE FROM phancong 
-                WHERE ma_phieu = %s AND ma_phancong != %s
-            """, (pc['ma_phieu'], ma_phancong))
-            # Cap nhat trang thai phieu
-            con_tro.execute("UPDATE phieubaohong SET trang_thai = 'dang_xu_ly' WHERE ma_phieu = %s", (pc['ma_phieu'],))
+            if pc.get('muc_do') == 'khancap':
+                # KHAN CAP: Giu nguyen phancong tat ca thanh vien, ca to cung tham gia xu ly
+                con_tro.execute("UPDATE phieubaohong SET trang_thai = 'dang_xu_ly' WHERE ma_phieu = %s", (pc['ma_phieu'],))
+            else:
+                # THUONG: Xoa phancong cho_tiep_nhan cua nguoi khac, chi 1 KTV lam
+                con_tro.execute("""
+                    DELETE FROM phancong 
+                    WHERE ma_phieu = %s AND ma_phancong != %s AND trang_thai = 'cho_tiep_nhan'
+                """, (pc['ma_phieu'], ma_phancong))
+                con_tro.execute("UPDATE phieubaohong SET trang_thai = 'dang_xu_ly' WHERE ma_phieu = %s", (pc['ma_phieu'],))
         conn.commit()
-        return jsonify({'thanh_cong': True, 'thong_bao': 'Đã tiếp nhận phiếu sửa chữa'})
+        return jsonify({'thanh_cong': True, 'thong_bao': 'Da tiep nhan!'})
     finally:
         conn.close()
 
@@ -1264,16 +1272,30 @@ def tu_choi_sua(ma_phancong):
         return jsonify({'thanh_cong': False}), 500
     try:
         con_tro = conn.cursor(dictionary=True)
-        # Lay ma phieu tu phancong
-        con_tro.execute("SELECT ma_phieu FROM phancong WHERE ma_phancong = %s", (ma_phancong,))
+        # Lay thong tin phancong + muc_do + so nguoi khac con lai
+        con_tro.execute("""
+            SELECT pc.ma_phieu, pb.muc_do,
+                   (SELECT COUNT(*) FROM phancong pc2 
+                    WHERE pc2.ma_phieu = pc.ma_phieu 
+                    AND pc2.ma_phancong != pc.ma_phancong
+                    AND pc2.trang_thai NOT IN ('tu_choi')) AS so_nguoi_khac
+            FROM phancong pc
+            JOIN phieubaohong pb ON pc.ma_phieu = pb.ma_phieu
+            WHERE pc.ma_phancong = %s
+        """, (ma_phancong,))
         pc = con_tro.fetchone()
-        # Cap nhat phancong thanh tu_choi
+        # Chi tu choi phan cong cua nguoi nay
         con_tro.execute("UPDATE phancong SET trang_thai = 'tu_choi' WHERE ma_phancong = %s", (ma_phancong,))
-        # Huy phieu - phong tro lai binh thuong
         if pc:
-            con_tro.execute("UPDATE phieubaohong SET trang_thai = 'khong_duyet' WHERE ma_phieu = %s", (pc['ma_phieu'],))
+            if pc.get('muc_do') == 'khancap' and pc.get('so_nguoi_khac', 0) > 0:
+                # KHAN CAP con nguoi khac: khong huy phieu, thanh vien khac van tiep tuc
+                pass
+            else:
+                # THUONG hoac KHAN CAP het nguoi: Huy phieu
+                con_tro.execute("UPDATE phieubaohong SET trang_thai = 'khong_duyet' WHERE ma_phieu = %s", (pc['ma_phieu'],))
         conn.commit()
-        return jsonify({'thanh_cong': True, 'thong_bao': 'Đã từ chối. Phiếu đã bị huỷ.'})
+        thong_bao = 'Da tu choi, thanh vien khac trong to van xu ly.' if (pc and pc.get('muc_do') == 'khancap' and pc.get('so_nguoi_khac', 0) > 0) else 'Da tu choi. Phieu da bi huy.'
+        return jsonify({'thanh_cong': True, 'thong_bao': thong_bao})
     finally:
         conn.close()
 
